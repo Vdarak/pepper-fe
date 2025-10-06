@@ -1,47 +1,257 @@
-import { ThemeToggle } from "@/components/theme-toggle";
+"use client";
 
-export default function Home() {
+import { useState, useEffect } from "react";
+import { Phone, Mail, ArrowRight, Zap, Shield, Users, Smartphone, Save, Settings } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent } from "@/components/ui/card";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
+import { signupRequest, ApiError } from "@/lib/api";
+
+const features = [
+  {
+    icon: <Zap className="h-8 w-8 text-primary" />,
+    title: "Lightning Fast",
+    description: "Experience blazing fast performance with our optimized platform built for speed and efficiency."
+  },
+  {
+    icon: <Shield className="h-8 w-8 text-primary" />,
+    title: "Secure & Private",
+    description: "Your data is protected with enterprise-grade security and privacy-first design principles."
+  },
+  {
+    icon: <Users className="h-8 w-8 text-primary" />,
+    title: "Team Collaboration",
+    description: "Work seamlessly with your team using powerful collaboration tools and real-time sync."
+  },
+  {
+    icon: <Smartphone className="h-8 w-8 text-primary" />,
+    title: "Mobile Ready",
+    description: "Access your work anywhere with our responsive design and native mobile experience."
+  }
+];
+
+export default function LandingPage() {
+  const [contactMethod, setContactMethod] = useState<"email" | "phone">("email");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [apiUrl, setApiUrl] = useState("");
+  const showApiConfig = true; // Show in development
+
+  // Load saved API URL from localStorage on component mount
+  useEffect(() => {
+    const savedApiUrl = localStorage.getItem("pepper-api-url");
+    if (savedApiUrl) {
+      setApiUrl(savedApiUrl);
+    } else {
+      // Default development API URL
+      setApiUrl("http://localhost:8000/api");
+    }
+  }, []);
+
+  const handleSaveApiUrl = () => {
+    if (apiUrl.trim()) {
+      localStorage.setItem("pepper-api-url", apiUrl.trim());
+      // You could also show a toast notification here
+      console.log("API URL saved:", apiUrl.trim());
+      alert("API URL saved successfully!");
+    }
+  };
+
+  const handleSignUp = async () => {
+    const contactValue = contactMethod === "email" ? email : phone;
+    
+    if (!contactValue.trim()) {
+      alert(`Please enter your ${contactMethod}`);
+      return;
+    }
+
+    // For now, we only support email signup based on the API
+    if (contactMethod !== "email") {
+      alert("Currently, only email signup is supported. Please use email to sign up.");
+      return;
+    }
+
+    try {
+      await signupRequest(contactValue);
+      
+      // Redirect to email verification page
+      const params = new URLSearchParams({
+        email: contactValue
+      });
+      window.location.href = `/verify-email?${params.toString()}`;
+    } catch (error) {
+      if (error instanceof ApiError) {
+        console.error("Signup failed:", error.message);
+        alert(error.message);
+      } else {
+        console.error("Signup error:", error);
+        alert("An error occurred during signup. Please check your API configuration and try again.");
+      }
+    }
+  };
+
+  const handleSignIn = async () => {
+    // For now, just redirect to a login page (we'll implement this later)
+    console.log("Sign in clicked - will implement login flow next");
+    alert("Login flow will be implemented in the next phase!");
+  };
+
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-screen bg-background">
+      {/* Main Container */}
       <div className="container mx-auto px-4 py-8">
-        <header className="flex justify-between items-center mb-12">
-          <h1 className="text-4xl font-bold text-primary">
-            Pepper
+        {/* Header */}
+        <header className="text-center mb-16">
+          <h1 className="text-8xl md:text-9xl font-bold text-primary mb-4 tracking-tight">
+            PEPPER
           </h1>
-          <ThemeToggle />
+          <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-8">
+            The modern platform that brings speed, security, and simplicity to your workflow
+          </p>
+
+          {/* Development API Configuration */}
+          {showApiConfig && (
+            <div className="max-w-md mx-auto mb-8 p-4 bg-muted/50 rounded-lg border border-dashed">
+              <div className="flex items-center gap-2 mb-3 text-sm text-muted-foreground">
+                <Settings className="h-4 w-4" />
+                <span>Development Mode - API Configuration</span>
+              </div>
+              <div className="flex gap-2">
+                <Input
+                  type="url"
+                  placeholder="API Base URL (e.g., http://localhost:8000/api)"
+                  value={apiUrl}
+                  onChange={(e) => setApiUrl(e.target.value)}
+                  className="text-sm"
+                />
+                <Button 
+                  onClick={handleSaveApiUrl}
+                  size="sm"
+                  className="shrink-0"
+                >
+                  <Save className="h-4 w-4 mr-1" />
+                  Save
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground mt-2">
+                Current API: {apiUrl || "Not configured"}
+              </p>
+            </div>
+          )}
         </header>
 
-        <main className="max-w-2xl mx-auto text-center">
-          <h2 className="text-6xl font-bold mb-6 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-            Hello World
-          </h2>
-          <p className="text-xl text-muted-foreground mb-8">
-            Welcome to Pepper - your scalable frontend application built with Next.js, TypeScript, and Tailwind CSS.
-          </p>
-          
-          <div className="space-y-4">
-            <button className="bg-primary text-primary-foreground hover:bg-primary/90 px-6 py-3 rounded-lg font-medium transition-colors">
-              Get Started
+        {/* Features Carousel */}
+        <div className="mb-16 max-w-4xl mx-auto">
+          <Carousel className="w-full">
+            <CarouselContent>
+              {features.map((feature, index) => (
+                <CarouselItem key={index} className="md:basis-1/2 lg:basis-1/3">
+                  <Card className="h-full">
+                    <CardContent className="flex flex-col items-center text-center p-6">
+                      <div className="mb-4 p-3 rounded-full bg-primary/10">
+                        {feature.icon}
+                      </div>
+                      <h3 className="text-xl font-semibold mb-2">{feature.title}</h3>
+                      <p className="text-muted-foreground text-sm leading-relaxed">
+                        {feature.description}
+                      </p>
+                    </CardContent>
+                  </Card>
+                </CarouselItem>
+              ))}
+            </CarouselContent>
+            <CarouselPrevious />
+            <CarouselNext />
+          </Carousel>
+        </div>
+
+        {/* Contact Method Toggle */}
+        <div className="max-w-md mx-auto mb-8">
+          <div className="flex rounded-lg border bg-card p-1">
+            <button
+              onClick={() => setContactMethod("email")}
+              className={`flex-1 flex items-center justify-center gap-2 py-2 px-4 rounded-md transition-colors ${
+                contactMethod === "email"
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <Mail className="h-4 w-4" />
+              Email
             </button>
-            
-            <div className="flex gap-4 justify-center">
-              <div className="bg-card text-card-foreground p-4 rounded-lg border">
-                <h3 className="font-semibold mb-2">Design System</h3>
-                <p className="text-sm text-muted-foreground">OKLCH colors with custom variables</p>
-              </div>
-              
-              <div className="bg-card text-card-foreground p-4 rounded-lg border">
-                <h3 className="font-semibold mb-2">Typography</h3>
-                <p className="text-sm text-muted-foreground">Geist fonts with fallbacks</p>
-              </div>
-              
-              <div className="bg-card text-card-foreground p-4 rounded-lg border">
-                <h3 className="font-semibold mb-2">Scalable</h3>
-                <p className="text-sm text-muted-foreground">Ready for large projects</p>
-              </div>
-            </div>
+            <button
+              onClick={() => setContactMethod("phone")}
+              className={`flex-1 flex items-center justify-center gap-2 py-2 px-4 rounded-md transition-colors ${
+                contactMethod === "phone"
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <Phone className="h-4 w-4" />
+              Phone
+            </button>
           </div>
-        </main>
+        </div>
+
+        {/* Input Section */}
+        <div className="max-w-md mx-auto mb-8">
+          {contactMethod === "email" ? (
+            <div className="space-y-2">
+              <Input
+                type="email"
+                placeholder="Enter your email address"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="h-12 text-center text-lg"
+              />
+            </div>
+          ) : (
+            <div className="space-y-2">
+              <Input
+                type="tel"
+                placeholder="Enter your phone number"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                className="h-12 text-center text-lg"
+              />
+            </div>
+          )}
+        </div>
+
+        {/* Action Buttons */}
+        <div className="max-w-md mx-auto space-y-4">
+          <Button 
+            onClick={handleSignUp}
+            className="w-full h-12 text-lg font-medium"
+            size="lg"
+          >
+            Sign Up
+            <ArrowRight className="ml-2 h-5 w-5" />
+          </Button>
+          
+          <div className="text-center">
+            <span className="text-muted-foreground">Already have an account? </span>
+            <Button
+              variant="link"
+              onClick={handleSignIn}
+              className="p-0 h-auto font-medium text-primary"
+            >
+              Sign In
+            </Button>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <footer className="text-center mt-16 text-sm text-muted-foreground">
+          <p>By signing up, you agree to our Terms of Service and Privacy Policy</p>
+        </footer>
       </div>
     </div>
   );

@@ -24,8 +24,8 @@ A modern, scalable frontend application built with Next.js, TypeScript, and Tail
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/[your-username]/pepper.git
-cd pepper
+git clone https://github.com/Vdarak/pepper-fe.git
+cd pepper-fe
 ```
 
 2. Install dependencies:
@@ -116,7 +116,7 @@ This project is optimized for deployment on [Vercel](https://vercel.com/):
 2. Connect your repository to Vercel
 3. Deploy with zero configuration!
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/[your-username]/pepper)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/Vdarak/pepper-fe)
 
 ## 📝 License
 

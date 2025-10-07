@@ -2,7 +2,7 @@
  * API utility functions for the Pepper application
  */
 
-interface ApiResponse<T = any> {
+interface ApiResponse<T = unknown> {
   success: boolean;
   data?: T;
   message?: string;
@@ -19,6 +19,22 @@ interface AccountSetupData {
   country_code: string;
   contact_number: string;
   password: string;
+}
+
+interface UserPreferencesData {
+  job_title: string;
+  commitment: string;
+  part_time: boolean;
+  full_time: boolean;
+  internship: boolean;
+  contract: boolean;
+  visa_sponsorship: boolean;
+  location: string;
+  pay_yearly_max: string;
+  pay_yearly_min: string;
+  pay_hourly_max: string;
+  pay_hourly_min: string;
+  goal_choice: string;
 }
 
 class ApiError extends Error {
@@ -41,7 +57,7 @@ function getApiUrl(): string {
 /**
  * Make an API request with proper error handling
  */
-async function apiRequest<T = any>(
+async function apiRequest<T = unknown>(
   endpoint: string, 
   options: RequestInit = {}
 ): Promise<T> {
@@ -99,14 +115,14 @@ async function apiRequest<T = any>(
 /**
  * Sign up user with email
  */
-export async function signupRequest(email: string): Promise<any> {
+export async function signupRequest(email: string): Promise<ApiResponse> {
   // Validate email format
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!email || !emailRegex.test(email)) {
     throw new ApiError(400, 'Please provide a valid email address');
   }
 
-  return apiRequest('/user/signup/request', {
+  return apiRequest<ApiResponse>('/user/signup/request', {
     method: 'POST',
     body: JSON.stringify({ email: email.trim().toLowerCase() }),
   });
@@ -115,8 +131,8 @@ export async function signupRequest(email: string): Promise<any> {
 /**
  * Resend verification email
  */
-export async function resendVerificationEmail(email: string): Promise<any> {
-  return apiRequest('/user/signup/request', {
+export async function resendVerificationEmail(email: string): Promise<ApiResponse> {
+  return apiRequest<ApiResponse>('/user/signup/request', {
     method: 'POST',
     body: JSON.stringify({ email }),
   });
@@ -125,12 +141,12 @@ export async function resendVerificationEmail(email: string): Promise<any> {
 /**
  * Verify signup token
  */
-export async function verifySignupToken(token: string): Promise<any> {
+export async function verifySignupToken(token: string): Promise<ApiResponse> {
   if (!token || token.trim() === '') {
     throw new ApiError(400, 'Verification token is required');
   }
 
-  return apiRequest(`/user/signup/verify?token=${encodeURIComponent(token.trim())}`, {
+  return apiRequest<ApiResponse>(`/user/signup/verify?token=${encodeURIComponent(token.trim())}`, {
     method: 'GET',
     credentials: 'include', // Include cookies if any
   });
@@ -139,7 +155,7 @@ export async function verifySignupToken(token: string): Promise<any> {
 /**
  * Complete account setup
  */
-export async function completeAccountSetup(data: AccountSetupData): Promise<any> {
+export async function completeAccountSetup(data: AccountSetupData): Promise<ApiResponse> {
   // Validate required fields
   const requiredFields = ['first_name', 'last_name', 'address_line1', 'city', 'state', 'country', 'pin', 'country_code', 'contact_number', 'password'];
   const missingFields = requiredFields.filter(field => !data[field as keyof AccountSetupData] || data[field as keyof AccountSetupData].toString().trim() === '');
@@ -162,11 +178,37 @@ export async function completeAccountSetup(data: AccountSetupData): Promise<any>
     pin_length: data.pin.length
   });
 
-  return apiRequest('/user/signup/account-setup', {
+  return apiRequest<ApiResponse>('/user/signup/account-setup', {
     method: 'POST',
     body: JSON.stringify(data),
     credentials: 'include', // Include cookies
   });
 }
 
-export { ApiError, getApiUrl, type AccountSetupData };
+/**
+ * Submit user preferences
+ */
+export async function submitUserPreferences(data: UserPreferencesData): Promise<ApiResponse> {
+  // Validate required fields
+  const requiredFields = ['job_title', 'commitment', 'location', 'goal_choice'];
+  const missingFields = requiredFields.filter(field => !data[field as keyof UserPreferencesData] || data[field as keyof UserPreferencesData].toString().trim() === '');
+  
+  if (missingFields.length > 0) {
+    throw new ApiError(400, `Missing required fields: ${missingFields.join(', ')}`);
+  }
+
+  console.log('🌶️ User preferences payload validation passed:', {
+    fields_count: Object.keys(data).length,
+    job_title: data.job_title,
+    commitment: data.commitment,
+    goal_choice: data.goal_choice
+  });
+
+  return apiRequest<ApiResponse>('/user/signup/user-pref', {
+    method: 'POST',
+    body: JSON.stringify(data),
+    credentials: 'include', // Include cookies
+  });
+}
+
+export { ApiError, getApiUrl, type AccountSetupData, type UserPreferencesData };

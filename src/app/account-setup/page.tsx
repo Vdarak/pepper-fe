@@ -151,8 +151,8 @@ function AccountSetupContent() {
       console.log('🌶️ Submitting account setup data:', submitData);
       await completeAccountSetup(submitData);
       
-      // Redirect to preferences page on success
-      router.push("/preferences");
+      // Redirect to dashboard on success
+      router.push("/dashboard");
       
     } catch (error) {
       if (error instanceof ApiError) {

@@ -21,22 +21,6 @@ interface AccountSetupData {
   password: string;
 }
 
-interface UserPreferencesData {
-  job_title: string;
-  commitment: string;
-  part_time: boolean;
-  full_time: boolean;
-  internship: boolean;
-  contract: boolean;
-  visa_sponsorship: boolean;
-  location: string;
-  pay_yearly_max: string;
-  pay_yearly_min: string;
-  pay_hourly_max: string;
-  pay_hourly_min: string;
-  goal_choice: string;
-}
-
 class ApiError extends Error {
   constructor(public status: number, message: string) {
     super(message);
@@ -185,33 +169,4 @@ export async function completeAccountSetup(data: AccountSetupData): Promise<any>
   });
 }
 
-/**
- * Submit user preferences
- */
-export async function submitUserPreferences(data: UserPreferencesData): Promise<any> {
-  // Validate required fields
-  const requiredFields = ['job_title', 'commitment', 'location', 'goal_choice'];
-  const missingFields = requiredFields.filter(field => !data[field as keyof UserPreferencesData] || data[field as keyof UserPreferencesData].toString().trim() === '');
-  
-  if (missingFields.length > 0) {
-    throw new ApiError(400, `Missing required fields: ${missingFields.join(', ')}`);
-  }
-
-  // Ensure at least one job type is selected
-  if (!data.part_time && !data.full_time && !data.internship && !data.contract) {
-    throw new ApiError(400, 'At least one job type must be selected');
-  }
-
-  console.log('🌶️ User preferences payload validation passed:', {
-    fields_count: Object.keys(data).length,
-    job_types_selected: [data.part_time, data.full_time, data.internship, data.contract].filter(Boolean).length
-  });
-
-  return apiRequest('/user/signup/user-pref', {
-    method: 'POST',
-    body: JSON.stringify(data),
-    credentials: 'include', // Include cookies
-  });
-}
-
-export { ApiError, getApiUrl, type AccountSetupData, type UserPreferencesData };
+export { ApiError, getApiUrl, type AccountSetupData };

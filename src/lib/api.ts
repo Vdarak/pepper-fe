@@ -122,7 +122,7 @@ export async function signupRequest(email: string): Promise<ApiResponse> {
     throw new ApiError(400, 'Please provide a valid email address');
   }
 
-  return apiRequest('/user/signup/request', {
+  return apiRequest<ApiResponse>('/user/signup/request', {
     method: 'POST',
     body: JSON.stringify({ email: email.trim().toLowerCase() }),
   });
@@ -132,7 +132,11 @@ export async function signupRequest(email: string): Promise<ApiResponse> {
  * Resend verification email
  */
 export async function resendVerificationEmail(email: string): Promise<ApiResponse> {
+<<<<<<< HEAD
   return apiRequest('/user/signup/request', {
+=======
+  return apiRequest<ApiResponse>('/user/signup/request', {
+>>>>>>> feature/onboarding
     method: 'POST',
     body: JSON.stringify({ email }),
   });
@@ -141,15 +145,22 @@ export async function resendVerificationEmail(email: string): Promise<ApiRespons
 /**
  * Verify signup token
  */
+<<<<<<< HEAD
 export async function verifySignupToken(token: string): Promise<ApiResponse> {
+=======
+export async function verifySignupToken(token: string): Promise<string> {
+>>>>>>> feature/onboarding
   if (!token || token.trim() === '') {
     throw new ApiError(400, 'Verification token is required');
   }
 
-  return apiRequest(`/user/signup/verify?token=${encodeURIComponent(token.trim())}`, {
+  const response = await apiRequest<string>(`/user/signup/verify?token=${encodeURIComponent(token.trim())}`, {
     method: 'GET',
     credentials: 'include', // Include cookies if any
   });
+  
+  // API returns just a success message string
+  return response;
 }
 
 /**
@@ -178,7 +189,7 @@ export async function completeAccountSetup(data: AccountSetupData): Promise<ApiR
     pin_length: data.pin.length
   });
 
-  return apiRequest('/user/signup/account-setup', {
+  return apiRequest<ApiResponse>('/user/signup/account-setup', {
     method: 'POST',
     body: JSON.stringify(data),
     credentials: 'include', // Include cookies
@@ -197,17 +208,14 @@ export async function submitUserPreferences(data: UserPreferencesData): Promise<
     throw new ApiError(400, `Missing required fields: ${missingFields.join(', ')}`);
   }
 
-  // Ensure at least one job type is selected
-  if (!data.part_time && !data.full_time && !data.internship && !data.contract) {
-    throw new ApiError(400, 'At least one job type must be selected');
-  }
-
   console.log('🌶️ User preferences payload validation passed:', {
     fields_count: Object.keys(data).length,
-    job_types_selected: [data.part_time, data.full_time, data.internship, data.contract].filter(Boolean).length
+    job_title: data.job_title,
+    commitment: data.commitment,
+    goal_choice: data.goal_choice
   });
 
-  return apiRequest('/user/signup/user-pref', {
+  return apiRequest<ApiResponse>('/user/signup/user-pref', {
     method: 'POST',
     body: JSON.stringify(data),
     credentials: 'include', // Include cookies

@@ -33,9 +33,27 @@ This document outlines the complete user signup and email verification flow impl
 - **Step 2**: Address Details (address, city, state, country, postal code)
 - **Step 3**: Contact & Security (phone number with country code, password)
 - Calls `POST /user/signup/account-setup` with complete user data
+- On success, redirects to preferences page
 
-### 6. Dashboard (`/dashboard`)
-- Welcome page after successful account creation
+### 6. Preferences (`/preferences`)
+- Two-part onboarding flow to collect job search preferences
+- **Part 1 - Role Selection**: 
+  - Job title (text input)
+  - Work arrangement (dropdown: remote, in-person, hybrid)
+  - Job type (checkboxes: full-time, part-time, internship, contract)
+  - Work authorization (checkbox: visa sponsorship)
+  - Job location (text input with suggestions)
+  - Desired salary (radio selection: yearly/hourly with min/max inputs)
+- **Part 2 - Career Goal**:
+  - Career goal selection (radio buttons):
+    - Advance my career
+    - Shift my career path
+    - Enjoy better work style
+- Calls `POST /user/signup/user-pref` with preferences data
+- On success, redirects to dashboard
+
+### 7. Dashboard (`/dashboard`)
+- Welcome page after successful account creation and preferences setup
 - Shows success message confirming account verification and setup
 
 ## API Endpoints Used
@@ -67,6 +85,26 @@ Body: {
   "country_code": "string",
   "contact_number": "string",
   "password": "string"
+}
+```
+
+### 4. User Preferences
+```
+POST /user/signup/user-pref
+Body: {
+  "job_title": "string",
+  "commitment": "string",
+  "part_time": true,
+  "full_time": true,
+  "internship": true,
+  "contract": true,
+  "visa_sponsorship": true,
+  "location": "string",
+  "pay_yearly_max": "string",
+  "pay_yearly_min": "string",
+  "pay_hourly_max": "string",
+  "pay_hourly_min": "string",
+  "goal_choice": "string"
 }
 ```
 

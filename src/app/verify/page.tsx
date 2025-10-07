@@ -15,7 +15,6 @@ function VerificationContent() {
   const token = searchParams.get("token");
   
   const [verificationState, setVerificationState] = useState<VerificationState>('loading');
-  const [email, setEmail] = useState<string>('');
   const [errorMessage, setErrorMessage] = useState<string>('');
 
   useEffect(() => {
@@ -35,17 +34,13 @@ function VerificationContent() {
       setVerificationState('loading');
       const response = await verifySignupToken(token);
       
-      // Assuming the API returns user email or some success indicator
-      setEmail(response.email || '');
+      // API returns a success message string
+      console.log('🌶️ Verification response:', response);
       setVerificationState('success');
       
       // Redirect to account setup after a brief delay
       setTimeout(() => {
-        const params = new URLSearchParams({
-          email: response.email || '',
-          token: token
-        });
-        router.push(`/account-setup?${params.toString()}`);
+        router.push('/account-setup');
       }, 2000);
       
     } catch (error) {
@@ -99,11 +94,6 @@ function VerificationContent() {
             <p className="text-muted-foreground">
               Your email address has been successfully verified.
             </p>
-            {email && (
-              <p className="text-sm font-medium bg-muted px-3 py-2 rounded-md">
-                {email}
-              </p>
-            )}
             <p className="text-sm text-muted-foreground">
               Redirecting you to complete your account setup...
             </p>

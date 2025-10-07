@@ -141,15 +141,18 @@ export async function resendVerificationEmail(email: string): Promise<ApiRespons
 /**
  * Verify signup token
  */
-export async function verifySignupToken(token: string): Promise<ApiResponse> {
+export async function verifySignupToken(token: string): Promise<string> {
   if (!token || token.trim() === '') {
     throw new ApiError(400, 'Verification token is required');
   }
 
-  return apiRequest<ApiResponse>(`/user/signup/verify?token=${encodeURIComponent(token.trim())}`, {
+  const response = await apiRequest<string>(`/user/signup/verify?token=${encodeURIComponent(token.trim())}`, {
     method: 'GET',
     credentials: 'include', // Include cookies if any
   });
+  
+  // API returns just a success message string
+  return response;
 }
 
 /**

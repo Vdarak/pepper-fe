@@ -132,11 +132,7 @@ export async function signupRequest(email: string): Promise<ApiResponse> {
  * Resend verification email
  */
 export async function resendVerificationEmail(email: string): Promise<ApiResponse> {
-<<<<<<< HEAD
-  return apiRequest('/user/signup/request', {
-=======
   return apiRequest<ApiResponse>('/user/signup/request', {
->>>>>>> feature/onboarding
     method: 'POST',
     body: JSON.stringify({ email }),
   });
@@ -145,11 +141,7 @@ export async function resendVerificationEmail(email: string): Promise<ApiRespons
 /**
  * Verify signup token
  */
-<<<<<<< HEAD
-export async function verifySignupToken(token: string): Promise<ApiResponse> {
-=======
 export async function verifySignupToken(token: string): Promise<string> {
->>>>>>> feature/onboarding
   if (!token || token.trim() === '') {
     throw new ApiError(400, 'Verification token is required');
   }

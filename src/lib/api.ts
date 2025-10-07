@@ -2,7 +2,7 @@
  * API utility functions for the Pepper application
  */
 
-interface ApiResponse<T = any> {
+interface ApiResponse<T = unknown> {
   success: boolean;
   data?: T;
   message?: string;
@@ -57,7 +57,7 @@ function getApiUrl(): string {
 /**
  * Make an API request with proper error handling
  */
-async function apiRequest<T = any>(
+async function apiRequest<T = unknown>(
   endpoint: string, 
   options: RequestInit = {}
 ): Promise<T> {
@@ -115,7 +115,7 @@ async function apiRequest<T = any>(
 /**
  * Sign up user with email
  */
-export async function signupRequest(email: string): Promise<any> {
+export async function signupRequest(email: string): Promise<ApiResponse> {
   // Validate email format
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!email || !emailRegex.test(email)) {
@@ -131,7 +131,7 @@ export async function signupRequest(email: string): Promise<any> {
 /**
  * Resend verification email
  */
-export async function resendVerificationEmail(email: string): Promise<any> {
+export async function resendVerificationEmail(email: string): Promise<ApiResponse> {
   return apiRequest('/user/signup/request', {
     method: 'POST',
     body: JSON.stringify({ email }),
@@ -141,7 +141,7 @@ export async function resendVerificationEmail(email: string): Promise<any> {
 /**
  * Verify signup token
  */
-export async function verifySignupToken(token: string): Promise<any> {
+export async function verifySignupToken(token: string): Promise<ApiResponse> {
   if (!token || token.trim() === '') {
     throw new ApiError(400, 'Verification token is required');
   }
@@ -155,7 +155,7 @@ export async function verifySignupToken(token: string): Promise<any> {
 /**
  * Complete account setup
  */
-export async function completeAccountSetup(data: AccountSetupData): Promise<any> {
+export async function completeAccountSetup(data: AccountSetupData): Promise<ApiResponse> {
   // Validate required fields
   const requiredFields = ['first_name', 'last_name', 'address_line1', 'city', 'state', 'country', 'pin', 'country_code', 'contact_number', 'password'];
   const missingFields = requiredFields.filter(field => !data[field as keyof AccountSetupData] || data[field as keyof AccountSetupData].toString().trim() === '');
@@ -188,7 +188,7 @@ export async function completeAccountSetup(data: AccountSetupData): Promise<any>
 /**
  * Submit user preferences
  */
-export async function submitUserPreferences(data: UserPreferencesData): Promise<any> {
+export async function submitUserPreferences(data: UserPreferencesData): Promise<ApiResponse> {
   // Validate required fields
   const requiredFields = ['job_title', 'commitment', 'location', 'goal_choice'];
   const missingFields = requiredFields.filter(field => !data[field as keyof UserPreferencesData] || data[field as keyof UserPreferencesData].toString().trim() === '');

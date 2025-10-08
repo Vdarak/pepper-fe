@@ -214,4 +214,85 @@ export async function submitUserPreferences(data: UserPreferencesData): Promise<
   });
 }
 
-export { ApiError, getApiUrl, type AccountSetupData, type UserPreferencesData };
+interface ResumeUploadData {
+  file: File;
+  name: string;
+  file_format: string;
+}
+
+interface ResumeUploadResponse {
+  message: string;
+  resume_id: string;
+}
+
+/**
+ * Upload user resume
+ */
+export async function uploadResume(data: ResumeUploadData): Promise<ResumeUploadResponse> {
+  // Validate required fields
+  if (!data.file) {
+    throw new ApiError(400, 'Resume file is required');
+  }
+  
+  if (!data.name || !data.name.trim()) {
+    throw new ApiError(400, 'Resume name is required');
+  }
+  
+  if (!data.file_format || !data.file_format.trim()) {
+    throw new ApiError(400, 'File format is required');
+  }
+
+  console.log('🌶️ Resume upload payload validation passed:', {
+    name: data.name,
+    file_format: data.file_format,
+    file_size: data.file.size,
+    file_name: data.file.name
+  });
+
+  // Create FormData for file upload
+  const formData = new FormData();
+  formData.append('file', data.file);
+  formData.append('name', data.name.trim());
+  formData.append('file_format', data.file_format.trim());
+
+  const url = `${getApiUrl()}/resume/upload`;
+  
+  console.log('🌶️ API Request:', {
+    url,
+    method: 'POST',
+    name: data.name,
+    file_format: data.file_format
+  });
+
+  const response = await fetch(url, {
+    method: 'POST',
+    body: formData,
+    credentials: 'include', // Include cookies
+    // Note: Don't set Content-Type header - browser will set it with boundary for multipart/form-data
+  });
+
+  let responseData;
+  try {
+    responseData = await response.json();
+  } catch (error) {
+    console.error('❌ Failed to parse response as JSON:', error);
+    throw new ApiError(response.status, 'Invalid response from server');
+  }
+
+  console.log('🌶️ API Response:', {
+    status: response.status,
+    ok: response.ok,
+    data: responseData
+  });
+
+  if (!response.ok) {
+    throw new ApiError(
+      response.status,
+      responseData.message || responseData.error || `Resume upload failed: ${response.status}`
+    );
+  }
+
+  return responseData;
+}
+
+export { ApiError, getApiUrl, type AccountSetupData, type UserPreferencesData, type ResumeUploadData };

@@ -174,8 +174,8 @@ function PreferencesContent() {
       console.log('🌶️ Submitting user preferences:', submitData);
       await submitUserPreferences(submitData);
       
-      // Redirect to dashboard on success
-      router.push("/dashboard");
+      // Redirect to resume upload on success
+      router.push("/resume-upload");
       
     } catch (error) {
       if (error instanceof ApiError) {

@@ -39,17 +39,17 @@ const CAREER_GOALS = [
   { 
     value: "advance", 
     label: "Advance my career",
-    description: "Level up to a senior role or leadership position"
+    description: "Level up to a senior role or leadership position - from assistant to COO!"
   },
   { 
     value: "shift", 
     label: "Shift my career path",
-    description: "Transition to a new industry or role type"
+    description: "Transition to a new industry or role type - because change is growth"
   },
   { 
     value: "enjoy", 
     label: "Enjoy better work style",
-    description: "Find better work-life balance and company culture"
+    description: "Find better work-life balance and company culture - you deserve it!"
   }
 ];
 
@@ -171,7 +171,7 @@ function PreferencesContent() {
         goal_choice: formData.goal_choice
       };
 
-      console.log('🌶️ Submitting user preferences:', submitData);
+      console.log('✓ Submitting user preferences:', submitData);
       await submitUserPreferences(submitData);
       
       // Redirect to resume upload on success
@@ -179,10 +179,10 @@ function PreferencesContent() {
       
     } catch (error) {
       if (error instanceof ApiError) {
-        console.error('🌶️ Preferences submission failed:', error);
+        console.error('❌ Preferences submission failed:', error);
         alert(`Failed to save preferences: ${error.message}`);
       } else {
-        console.error('🌶️ Unexpected error:', error);
+        console.error('❌ Unexpected error:', error);
         alert("An error occurred while saving your preferences. Please try again.");
       }
     } finally {
@@ -203,7 +203,7 @@ function PreferencesContent() {
       <div>
         <label className="text-sm font-medium mb-2 block">Which role are you looking for?</label>
         <Input
-          placeholder="e.g., Software Engineer, Product Manager, Data Scientist"
+          placeholder="e.g., Executive Assistant, Legal Secretary, Chief Operating Officer"
           value={formData.job_title}
           onChange={(e) => updateFormData("job_title", e.target.value)}
           className={errors.job_title ? "border-red-500" : ""}
@@ -297,7 +297,7 @@ function PreferencesContent() {
       <div>
         <label className="text-sm font-medium mb-2 block">Job Location</label>
         <Input
-          placeholder="e.g., San Francisco, CA or New York, NY"
+          placeholder="e.g., New York, NY or Malibu, CA"
           value={formData.location}
           onChange={(e) => updateFormData("location", e.target.value)}
           className={errors.location ? "border-red-500" : ""}
@@ -306,7 +306,7 @@ function PreferencesContent() {
           <p className="text-red-500 text-xs mt-1">{errors.location}</p>
         )}
         <p className="text-xs text-muted-foreground mt-1">
-          Enter your preferred city and state
+          Enter your preferred city and state - I know the market like the back of my hand!
         </p>
       </div>
 
@@ -397,7 +397,7 @@ function PreferencesContent() {
 
       <div className="bg-primary/5 p-3 rounded-lg">
         <p className="text-xs text-muted-foreground">
-          💼 <strong>Pepper's Insight:</strong> The more details you share, the better I can match you with opportunities that truly fit your needs!
+          💼 <strong>Pepper's Insight:</strong> The more details you share, the better I can match you with opportunities that truly fit your needs! I'm as organized as Pepper Potts and as savvy as Donna Paulsen - trust me, we'll find your perfect role.
         </p>
       </div>
     </div>
@@ -441,7 +441,7 @@ function PreferencesContent() {
 
       <div className="bg-primary/5 p-3 rounded-lg">
         <p className="text-xs text-muted-foreground">
-          🎯 <strong>Pepper's Promise:</strong> Once I know your goal, I'll tailor every job recommendation and application strategy to help you achieve it!
+          🎯 <strong>Pepper's Promise:</strong> Once I know your goal, I'll tailor every job recommendation and application strategy to help you achieve it! Think of me as your personal career strategist - I've got the executive-level thinking of Pepper Potts and the career-making instincts of Donna Paulsen.
         </p>
       </div>
     </div>

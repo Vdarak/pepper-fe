@@ -12,7 +12,7 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
-import { signupRequest, ApiError } from "@/lib/api";
+import { signupRequest, loginRequest, ApiError } from "@/lib/api";
 
 const features = [
   {
@@ -41,6 +41,10 @@ export default function LandingPage() {
   const [contactMethod, setContactMethod] = useState<"email" | "phone">("email");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPasswordField, setShowPasswordField] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [responseMessage, setResponseMessage] = useState("");
   const [apiUrl, setApiUrl] = useState("");
   const showApiConfig = true; // Show in development
 
@@ -68,15 +72,18 @@ export default function LandingPage() {
     const contactValue = contactMethod === "email" ? email : phone;
     
     if (!contactValue.trim()) {
-      alert(`Please enter your ${contactMethod}`);
+      setResponseMessage(`Please enter your ${contactMethod}`);
       return;
     }
 
     // For now, we only support email signup based on the API
     if (contactMethod !== "email") {
-      alert("Currently, only email signup is supported. Please use email to sign up.");
+      setResponseMessage("Currently, only email signup is supported. Please use email to sign up.");
       return;
     }
+
+    setIsLoading(true);
+    setResponseMessage("");
 
     try {
       await signupRequest(contactValue);
@@ -89,18 +96,71 @@ export default function LandingPage() {
     } catch (error) {
       if (error instanceof ApiError) {
         console.error("Signup failed:", error.message);
-        alert(error.message);
+        setResponseMessage(error.message);
       } else {
         console.error("Signup error:", error);
-        alert("An error occurred during signup. Please check your API configuration and try again.");
+        setResponseMessage("An error occurred during signup. Please check your API configuration and try again.");
       }
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const handleSignIn = async () => {
-    // For now, just redirect to a login page (we'll implement this later)
-    console.log("Sign in clicked - will implement login flow next");
-    alert("Login flow will be implemented in the next phase!");
+  const handleLoginClick = async () => {
+    const contactValue = contactMethod === "email" ? email : phone;
+    
+    if (!contactValue.trim()) {
+      setResponseMessage(`Please enter your ${contactMethod}`);
+      return;
+    }
+
+    // For now, we only support email login
+    if (contactMethod !== "email") {
+      setResponseMessage("Currently, only email login is supported. Please use email to log in.");
+      return;
+    }
+
+    // If password field is not shown, show it
+    if (!showPasswordField) {
+      setShowPasswordField(true);
+      setResponseMessage("");
+      return;
+    }
+
+    // If password field is shown, validate and attempt login
+    if (!password.trim()) {
+      setResponseMessage("Please enter your password");
+      return;
+    }
+
+    setIsLoading(true);
+    setResponseMessage("");
+
+    try {
+      const response = await loginRequest(contactValue, password);
+      
+      // Display success message
+      setResponseMessage(response.message || "Login successful!");
+      
+      // Store a simple session flag
+      localStorage.setItem("pepper-session", JSON.stringify({ email: contactValue }));
+      
+      // Redirect to dashboard after short delay
+      setTimeout(() => {
+        window.location.href = "/dashboard";
+      }, 1500);
+      
+    } catch (error) {
+      if (error instanceof ApiError) {
+        console.error("Login failed:", error.message);
+        setResponseMessage(error.message);
+      } else {
+        console.error("Login error:", error);
+        setResponseMessage("An error occurred during login. Please try again.");
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -113,7 +173,7 @@ export default function LandingPage() {
             PEPPER
           </h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-8">
-            The modern platform that brings speed, security, and simplicity to your workflow
+            Your AI job hunt assistant - combining the efficiency of Pepper Potts with the career savvy of Donna Paulsen
           </p>
 
           {/* Development API Configuration */}
@@ -203,14 +263,36 @@ export default function LandingPage() {
         {/* Input Section */}
         <div className="max-w-md mx-auto mb-8">
           {contactMethod === "email" ? (
-            <div className="space-y-2">
+            <div className="space-y-4">
               <Input
                 type="email"
                 placeholder="Enter your email address"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  setResponseMessage("");
+                }}
                 className="h-12 text-center text-lg"
               />
+              
+              {/* Password field - only shown when login is clicked */}
+              {showPasswordField && (
+                <Input
+                  type="password"
+                  placeholder="Enter your password"
+                  value={password}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    setResponseMessage("");
+                  }}
+                  className="h-12 text-center text-lg"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      handleLoginClick();
+                    }
+                  }}
+                />
+              )}
             </div>
           ) : (
             <div className="space-y-2">
@@ -218,32 +300,67 @@ export default function LandingPage() {
                 type="tel"
                 placeholder="Enter your phone number"
                 value={phone}
-                onChange={(e) => setPhone(e.target.value)}
+                onChange={(e) => {
+                  setPhone(e.target.value);
+                  setResponseMessage("");
+                }}
                 className="h-12 text-center text-lg"
               />
+            </div>
+          )}
+          
+          {/* Response Message */}
+          {responseMessage && (
+            <div className={`mt-4 p-3 rounded-lg text-center text-sm ${
+              responseMessage.toLowerCase().includes('success') || responseMessage.toLowerCase().includes('login')
+                ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400'
+                : 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400'
+            }`}>
+              {responseMessage}
             </div>
           )}
         </div>
 
         {/* Action Buttons */}
         <div className="max-w-md mx-auto space-y-4">
-          <Button 
-            onClick={handleSignUp}
-            className="w-full h-12 text-lg font-medium"
-            size="lg"
-          >
-            Sign Up
-            <ArrowRight className="ml-2 h-5 w-5" />
-          </Button>
-          
-          <div className="text-center">
-            <span className="text-muted-foreground">Already have an account? </span>
-            <Button
-              variant="link"
-              onClick={handleSignIn}
-              className="p-0 h-auto font-medium text-primary"
+          <div className="flex gap-3">
+            <Button 
+              onClick={handleLoginClick}
+              variant="secondary"
+              className="flex-1 h-12 text-lg font-medium"
+              size="lg"
+              disabled={isLoading}
             >
-              Sign In
+              {isLoading && showPasswordField ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2"></div>
+                  Logging in...
+                </>
+              ) : (
+                <>
+                  {showPasswordField ? 'Login' : 'Login'}
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </>
+              )}
+            </Button>
+            
+            <Button 
+              onClick={handleSignUp}
+              className="flex-1 h-12 text-lg font-medium"
+              size="lg"
+              disabled={isLoading}
+            >
+              {isLoading && !showPasswordField ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2"></div>
+                  Signing up...
+                </>
+              ) : (
+                <>
+                  Sign Up
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </>
+              )}
             </Button>
           </div>
         </div>

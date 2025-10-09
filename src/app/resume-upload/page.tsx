@@ -138,7 +138,7 @@ function ResumeUploadContent() {
         file_format: fileExtension
       });
 
-      console.log('🌶️ Resume uploaded successfully:', response);
+      console.log('✓ Resume uploaded successfully:', response);
       
       // Set success status with message from backend
       setUploadStatus({
@@ -149,13 +149,13 @@ function ResumeUploadContent() {
 
     } catch (error) {
       if (error instanceof ApiError) {
-        console.error('🌶️ Resume upload failed:', error);
+        console.error('❌ Resume upload failed:', error);
         setUploadStatus({
           success: false,
           message: error.message || "Failed to upload resume. Please try again."
         });
       } else {
-        console.error('🌶️ Unexpected error:', error);
+        console.error('❌ Unexpected error:', error);
         setUploadStatus({
           success: false,
           message: "An error occurred while uploading your resume. Please try again."
@@ -190,7 +190,7 @@ function ResumeUploadContent() {
           </div>
           <CardTitle className="text-2xl font-bold">Almost There! Upload Your Resume</CardTitle>
           <p className="text-muted-foreground">
-            Let's get your resume uploaded so I can start finding the perfect opportunities for you! 🎯
+            Let's get your resume uploaded so I can start finding the perfect opportunities for you! I'll analyze it with the precision of Pepper Potts reviewing a Stark Industries contract.
           </p>
         </CardHeader>
 
@@ -275,7 +275,7 @@ function ResumeUploadContent() {
               <div className="flex-1">
                 <Input
                   id="resume-name"
-                  placeholder="e.g., John Doe - Software Engineer Resume"
+                  placeholder="e.g., Virginia Potts - Executive Assistant Resume"
                   value={formData.name}
                   onChange={(e) => {
                     setFormData({ ...formData, name: e.target.value });

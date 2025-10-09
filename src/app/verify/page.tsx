@@ -35,7 +35,7 @@ function VerificationContent() {
       const response = await verifySignupToken(token);
       
       // API returns a success message string
-      console.log('🌶️ Verification response:', response);
+      console.log('✓ Verification response:', response);
       setVerificationState('success');
       
       // Redirect to account setup after a brief delay

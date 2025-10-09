@@ -1,4 +1,4 @@
-# Pepper 🌶️
+# Pepper
 
 Your friendly AI-powered job search assistant! Pepper is a modern, scalable frontend application built with Next.js, TypeScript, and Tailwind CSS featuring a custom design system, comprehensive user onboarding, and dark mode support.
 

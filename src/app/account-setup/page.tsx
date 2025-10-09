@@ -148,7 +148,7 @@ function AccountSetupContent() {
         password: formData.password
       };
 
-      console.log('🌶️ Submitting account setup data:', submitData);
+      console.log('✓ Submitting account setup data:', submitData);
       await completeAccountSetup(submitData);
       
       // Redirect to preferences page on success
@@ -156,10 +156,10 @@ function AccountSetupContent() {
       
     } catch (error) {
       if (error instanceof ApiError) {
-        console.error('🌶️ Account setup failed:', error);
+        console.error('❌ Account setup failed:', error);
         alert(`Account setup failed: ${error.message}`);
       } else {
-        console.error('🌶️ Unexpected error:', error);
+        console.error('❌ Unexpected error:', error);
         alert("An error occurred while setting up your account. Please try again.");
       }
     } finally {
@@ -195,7 +195,7 @@ function AccountSetupContent() {
   const renderPersonalInfo = () => (
     <div className="space-y-4">
       <div className="text-center mb-6">
-        <h3 className="text-lg font-semibold mb-2">Hey there! I'm Pepper 🌶️</h3>
+        <h3 className="text-lg font-semibold mb-2">Hey there! I'm Pepper</h3>
         <p className="text-muted-foreground text-sm">
           I'm your AI job hunt assistant, and I'm here to help you land your dream job! 
           Your email is already verified, so let's start by getting to know you better. What should I call you?
@@ -206,7 +206,7 @@ function AccountSetupContent() {
         <div>
           <label className="text-sm font-medium mb-2 block">First Name</label>
           <Input
-            placeholder="John"
+            placeholder="Pepper"
             value={formData.first_name}
             onChange={(e) => updateFormData("first_name", e.target.value)}
             className={errors.first_name ? "border-red-500" : ""}
@@ -218,7 +218,7 @@ function AccountSetupContent() {
         <div>
           <label className="text-sm font-medium mb-2 block">Last Name</label>
           <Input
-            placeholder="Doe"
+            placeholder="Potts"
             value={formData.last_name}
             onChange={(e) => updateFormData("last_name", e.target.value)}
             className={errors.last_name ? "border-red-500" : ""}
@@ -231,7 +231,7 @@ function AccountSetupContent() {
       
       <div className="bg-primary/5 p-3 rounded-lg">
         <p className="text-xs text-muted-foreground">
-          💡 <strong>Pepper's Tip:</strong> I'll use your name to personalize job recommendations and help you craft the perfect applications!
+          💡 <strong>Pepper's Tip:</strong> I'll use your name to personalize job recommendations and help you craft the perfect applications! Think of me as the perfect fusion of Pepper Potts' efficiency and Donna Paulsen's sass.
         </p>
       </div>
     </div>
@@ -240,7 +240,7 @@ function AccountSetupContent() {
   const renderAddressInfo = () => (
     <div className="space-y-4">
       <div className="text-center mb-6">
-        <h3 className="text-lg font-semibold mb-2">Great! Now, where are you based? �️</h3>
+        <h3 className="text-lg font-semibold mb-2">Great! Now, where are you based? 🗺️</h3>
         <p className="text-muted-foreground text-sm">
           I need to know your location so I can find the perfect job opportunities in your area. 
           Don't worry - I currently focus on the US job market, so we've got you covered!
@@ -250,7 +250,7 @@ function AccountSetupContent() {
       <div>
         <label className="text-sm font-medium mb-2 block">Street Address</label>
         <Input
-          placeholder="123 Main Street"
+          placeholder="10880 Malibu Point"
           value={formData.address_line1}
           onChange={(e) => updateFormData("address_line1", e.target.value)}
           className={errors.address_line1 ? "border-red-500" : ""}
@@ -264,7 +264,7 @@ function AccountSetupContent() {
         <div>
           <label className="text-sm font-medium mb-2 block">City</label>
           <Input
-            placeholder="New York"
+            placeholder="Malibu"
             value={formData.city}
             onChange={(e) => updateFormData("city", e.target.value)}
             className={errors.city ? "border-red-500" : ""}
@@ -299,7 +299,7 @@ function AccountSetupContent() {
       <div>
         <label className="text-sm font-medium mb-2 block">ZIP Code</label>
         <Input
-          placeholder="10001"
+          placeholder="90265"
           value={formData.pin}
           onChange={(e) => updateFormData("pin", e.target.value)}
           className={errors.pin ? "border-red-500" : ""}
@@ -312,7 +312,7 @@ function AccountSetupContent() {
 
       <div className="bg-primary/5 p-3 rounded-lg">
         <p className="text-xs text-muted-foreground">
-          🎯 <strong>Pepper's Insight:</strong> I'll use your location to filter jobs by commute time, remote options, and local market trends. The more specific, the better!
+          🎯 <strong>Pepper's Insight:</strong> I'll use your location to filter jobs by commute time, remote options, and local market trends. The more specific, the better! Just like how Donna knows every firm in NYC, I'll know every opportunity in your area.
         </p>
       </div>
     </div>
@@ -321,7 +321,7 @@ function AccountSetupContent() {
   const renderContactInfo = () => (
     <div className="space-y-4">
       <div className="text-center mb-6">
-        <h3 className="text-lg font-semibold mb-2">Perfect! Last step - let's secure your account �</h3>
+        <h3 className="text-lg font-semibold mb-2">Perfect! Last step - let's secure your account 🔒</h3>
         <p className="text-muted-foreground text-sm">
           Almost done! I need your phone number so employers can reach you about amazing opportunities, 
           and a secure password to keep your account safe while I work my magic!
@@ -335,7 +335,7 @@ function AccountSetupContent() {
             +1
           </div>
           <Input
-            placeholder="5551234567"
+            placeholder="(212) 555-0199"
             value={formData.contact_number}
             onChange={(e) => updateFormData("contact_number", e.target.value)}
             className={`flex-1 ${errors.contact_number ? "border-red-500" : ""}`}
@@ -346,7 +346,7 @@ function AccountSetupContent() {
           <p className="text-red-500 text-xs mt-1">{errors.contact_number}</p>
         )}
         <p className="text-xs text-muted-foreground mt-1">
-          Format: 10 digits (e.g., 5551234567)
+          Format: 10 digits (e.g., 5551234567) - Your direct line to opportunity!
         </p>
       </div>
 

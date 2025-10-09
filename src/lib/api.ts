@@ -79,7 +79,7 @@ async function apiRequest<T = unknown>(
   };
 
   // Debug logging
-  console.log('🌶️ API Request:', {
+  console.log('🔍 API Request:', {
     url,
     method: requestOptions.method || 'GET',
     headers: requestOptions.headers,
@@ -96,7 +96,7 @@ async function apiRequest<T = unknown>(
     throw new ApiError(response.status, 'Invalid response from server');
   }
 
-  console.log('🌶️ API Response:', {
+  console.log('✅ API Response:', {
     status: response.status,
     ok: response.ok,
     data
@@ -125,6 +125,40 @@ export async function signupRequest(email: string): Promise<ApiResponse> {
   return apiRequest<ApiResponse>('/user/signup/request', {
     method: 'POST',
     body: JSON.stringify({ email: email.trim().toLowerCase() }),
+  });
+}
+
+/**
+ * Login user with email and password
+ */
+export async function loginRequest(email: string, password: string): Promise<{ message: string }> {
+  // Validate email format
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!email || !emailRegex.test(email)) {
+    throw new ApiError(400, 'Please provide a valid email address');
+  }
+
+  if (!password || password.trim() === '') {
+    throw new ApiError(400, 'Password is required');
+  }
+
+  return apiRequest<{ message: string }>('/user/login', {
+    method: 'POST',
+    body: JSON.stringify({ 
+      email: email.trim().toLowerCase(),
+      password: password
+    }),
+    credentials: 'include', // Include cookies
+  });
+}
+
+/**
+ * Logout user
+ */
+export async function logoutRequest(): Promise<{ message: string }> {
+  return apiRequest<{ message: string }>('/user/logout', {
+    method: 'POST',
+    credentials: 'include', // Include cookies for logout
   });
 }
 
@@ -175,7 +209,7 @@ export async function completeAccountSetup(data: AccountSetupData): Promise<ApiR
     throw new ApiError(400, 'ZIP code must be 5 or 9 digits');
   }
 
-  console.log('🌶️ Account setup payload validation passed:', {
+  console.log('✓ Account setup payload validation passed:', {
     fields_count: Object.keys(data).length,
     contact_number_length: data.contact_number.length,
     pin_length: data.pin.length
@@ -200,7 +234,7 @@ export async function submitUserPreferences(data: UserPreferencesData): Promise<
     throw new ApiError(400, `Missing required fields: ${missingFields.join(', ')}`);
   }
 
-  console.log('🌶️ User preferences payload validation passed:', {
+  console.log('✓ User preferences payload validation passed:', {
     fields_count: Object.keys(data).length,
     job_title: data.job_title,
     commitment: data.commitment,
@@ -242,7 +276,7 @@ export async function uploadResume(data: ResumeUploadData): Promise<ResumeUpload
     throw new ApiError(400, 'File format is required');
   }
 
-  console.log('🌶️ Resume upload payload validation passed:', {
+  console.log('✓ Resume upload payload validation passed:', {
     name: data.name,
     file_format: data.file_format,
     file_size: data.file.size,
@@ -257,7 +291,7 @@ export async function uploadResume(data: ResumeUploadData): Promise<ResumeUpload
 
   const url = `${getApiUrl()}/resume/upload`;
   
-  console.log('🌶️ API Request:', {
+  console.log('🔍 API Request:', {
     url,
     method: 'POST',
     name: data.name,
@@ -279,7 +313,7 @@ export async function uploadResume(data: ResumeUploadData): Promise<ResumeUpload
     throw new ApiError(response.status, 'Invalid response from server');
   }
 
-  console.log('🌶️ API Response:', {
+  console.log('✅ API Response:', {
     status: response.status,
     ok: response.ok,
     data: responseData

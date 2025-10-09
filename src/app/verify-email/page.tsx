@@ -151,12 +151,13 @@ function EmailVerificationContent() {
             </p>
             
             <div className="bg-muted/50 p-4 rounded-lg text-xs text-muted-foreground">
-              <p className="font-medium mb-2">Instructions:</p>
+              <p className="font-medium mb-2">📧 Quick Instructions:</p>
               <ol className="text-left space-y-1 list-decimal list-inside">
                 <li>Check your email inbox for our verification email</li>
                 <li>Click the verification link in the email</li>
                 <li>Follow the instructions to complete your account setup</li>
               </ol>
+              <p className="mt-2 italic text-xs">Pro tip: I'm as efficient as Pepper Potts - your email should arrive faster than a Stark Industries delivery!</p>
             </div>
             
             <div className="space-y-3">

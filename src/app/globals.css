@@ -4,6 +4,7 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
+  /* Colors - Light Mode */
   --background: oklch(1 0 0);
   --foreground: oklch(0.1450 0 0);
   --card: oklch(1 0 0);
@@ -36,10 +37,16 @@
   --sidebar-accent-foreground: oklch(0.2050 0 0);
   --sidebar-border: oklch(0.9220 0 0);
   --sidebar-ring: oklch(0.7080 0 0);
+
+  /* Fonts */
   --font-sans: Geist, ui-sans-serif, sans-serif, system-ui;
   --font-serif: Geist, ui-sans-serif, sans-serif, system-ui;
   --font-mono: Geist Mono, ui-monospace, monospace;
+
+  /* Border Radius */
   --radius: 0.625rem;
+
+  /* Shadows */
   --shadow-x: 0;
   --shadow-y: 1px;
   --shadow-blur: 3px;
@@ -54,11 +61,13 @@
   --shadow-lg: 0 1px 3px 0px hsl(0 88.8112% 71.9608% / 0.10), 0 4px 6px -1px hsl(0 88.8112% 71.9608% / 0.10);
   --shadow-xl: 0 1px 3px 0px hsl(0 88.8112% 71.9608% / 0.10), 0 8px 10px -1px hsl(0 88.8112% 71.9608% / 0.10);
   --shadow-2xl: 0 1px 3px 0px hsl(0 88.8112% 71.9608% / 0.25);
-  --tracking-normal: 0em;
+
+  /* Spacing */
   --spacing: 0.25rem;
 }
 
 .dark {
+  /* Colors - Dark Mode (only colors change in dark mode) */
   --background: oklch(0.1450 0 0);
   --foreground: oklch(0.9850 0 0);
   --card: oklch(0.2050 0 0);
@@ -91,27 +100,11 @@
   --sidebar-accent-foreground: oklch(0.9850 0 0);
   --sidebar-border: oklch(0.2750 0 0);
   --sidebar-ring: oklch(0.4390 0 0);
-  --font-sans: Geist, ui-sans-serif, sans-serif, system-ui;
-  --font-serif: Geist, ui-sans-serif, sans-serif, system-ui;
-  --font-mono: Geist Mono, ui-monospace, monospace;
-  --radius: 0.625rem;
-  --shadow-x: 0;
-  --shadow-y: 1px;
-  --shadow-blur: 3px;
-  --shadow-spread: 0px;
-  --shadow-opacity: 0.1;
-  --shadow-color: #f77878;
-  --shadow-2xs: 0 1px 3px 0px hsl(0 88.8112% 71.9608% / 0.05);
-  --shadow-xs: 0 1px 3px 0px hsl(0 88.8112% 71.9608% / 0.05);
-  --shadow-sm: 0 1px 3px 0px hsl(0 88.8112% 71.9608% / 0.10), 0 1px 2px -1px hsl(0 88.8112% 71.9608% / 0.10);
-  --shadow: 0 1px 3px 0px hsl(0 88.8112% 71.9608% / 0.10), 0 1px 2px -1px hsl(0 88.8112% 71.9608% / 0.10);
-  --shadow-md: 0 1px 3px 0px hsl(0 88.8112% 71.9608% / 0.10), 0 2px 4px -1px hsl(0 88.8112% 71.9608% / 0.10);
-  --shadow-lg: 0 1px 3px 0px hsl(0 88.8112% 71.9608% / 0.10), 0 4px 6px -1px hsl(0 88.8112% 71.9608% / 0.10);
-  --shadow-xl: 0 1px 3px 0px hsl(0 88.8112% 71.9608% / 0.10), 0 8px 10px -1px hsl(0 88.8112% 71.9608% / 0.10);
-  --shadow-2xl: 0 1px 3px 0px hsl(0 88.8112% 71.9608% / 0.25);
 }
 
+/* Tailwind v4 Theme Configuration */
 @theme inline {
+  /* Map colors to Tailwind */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -145,15 +138,18 @@
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
 
-  --font-sans: var(--font-sans);
-  --font-mono: var(--font-mono);
-  --font-serif: var(--font-serif);
+  /* Map fonts to Tailwind */
+  --font-family-sans: var(--font-sans);
+  --font-family-mono: var(--font-mono);
+  --font-family-serif: var(--font-serif);
 
+  /* Map radius to Tailwind */
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
 
+  /* Map shadows to Tailwind */
   --shadow-2xs: var(--shadow-2xs);
   --shadow-xs: var(--shadow-xs);
   --shadow-sm: var(--shadow-sm);
@@ -162,6 +158,45 @@
   --shadow-lg: var(--shadow-lg);
   --shadow-xl: var(--shadow-xl);
   --shadow-2xl: var(--shadow-2xl);
+
+  /* Typography - Golden Ratio Scale (Override Tailwind defaults) */
+  --font-size-xs: 0.618rem;
+  --font-size-sm: 0.764rem;
+  --font-size-base: 1rem;
+  --font-size-lg: 1.236rem;
+  --font-size-xl: 1.618rem;
+  --font-size-2xl: 2rem;
+  --font-size-3xl: 2.618rem;
+  --font-size-4xl: 3.236rem;
+  --font-size-5xl: 4.236rem;
+  --font-size-6xl: 5.236rem;
+  --font-size-7xl: 6.854rem;
+  --font-size-8xl: 8.472rem;
+  --font-size-9xl: 10.09rem;
+
+  --line-height-none: 1;
+  --line-height-tight: 1.236;
+  --line-height-snug: 1.382;
+  --line-height-normal: 1.618;
+  --line-height-relaxed: 2;
+  --line-height-loose: 2.618;
+
+  --letter-spacing-tighter: -0.05em;
+  --letter-spacing-tight: -0.025em;
+  --letter-spacing-normal: 0em;
+  --letter-spacing-wide: 0.025em;
+  --letter-spacing-wider: 0.05em;
+  --letter-spacing-widest: 0.1em;
+
+  --font-weight-thin: 100;
+  --font-weight-extralight: 200;
+  --font-weight-light: 300;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --font-weight-extrabold: 800;
+  --font-weight-black: 900;
 }
 
 @layer base {
@@ -170,14 +205,53 @@
   }
   body {
     @apply bg-background text-foreground;
+    overflow-x: hidden;
+  }
+  
+  html {
+    overflow-x: hidden;
   }
 }
 
-@layer base {
-  * {
-    @apply border-border outline-ring/50;
+@layer utilities {
+  /* Custom scrollbar styles */
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
   }
-  body {
-    @apply bg-background text-foreground;
+  
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background: hsl(var(--border));
+    border-radius: 3px;
+  }
+  
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--muted-foreground) / 0.5);
+  }
+
+  /* Line clamp utilities */
+  .line-clamp-1 {
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .line-clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
   }
 }

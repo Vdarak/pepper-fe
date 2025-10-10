@@ -562,6 +562,67 @@ export async function downloadResume(resumeId: string): Promise<Blob> {
   return response.blob();
 }
 
+/**
+ * Job-related types
+ */
+export interface Job {
+  Title: string;
+  ApplyURL: string;
+  RequirementSummary: string;
+  Description: string;
+  TechTools: string | null;
+  Commitment: string;
+  Location: string;
+  PublishedOn: string;
+  VisaSponsorship: string | null;
+  SeniorityLevel: string;
+  CompensationFrequency: string;
+  CompensationCurrency: string;
+  PayYearlyMax: string;
+  PayYearlyMin: string;
+  PayHourlyMax: string | null;
+  PayHourlyMin: string | null;
+  WorkPlaceType: string;
+  JobSector: string;
+  ApiVersion: string;
+  res1: string | string[];
+  RawPayload: string;
+}
+
+export interface Company {
+  Name: string;
+  Website: string | null;
+  ImageUrl: string | null;
+  LinkedIn: string | null;
+  Tagline: string | null;
+  YearFounded: number | null;
+  HQCountry: string;
+  Industries: string | null;
+  NumEmployees: number | null;
+  IsPublic: boolean;
+  IsNonProfit: boolean;
+}
+
+export interface JobListing {
+  Job: Job;
+  Company: Company;
+}
+
+export interface FetchJobsResponse {
+  jobs: JobListing[];
+}
+
+/**
+ * Fetch jobs from the API
+ */
+export async function fetchJobs(size: number = 30): Promise<JobListing[]> {
+  return apiRequest<JobListing[]>('/jobs/fetch_jobs', {
+    method: 'POST',
+    body: JSON.stringify({ size }),
+    credentials: 'include',
+  });
+}
+
 export { 
   ApiError, 
   getApiUrl, 

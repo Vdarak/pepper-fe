@@ -8,6 +8,10 @@ Your friendly AI-powered job search assistant! Pepper is a modern, scalable fron
 - **Complete User Onboarding** - 6-step registration flow with email verification
 - **Smart Preferences** - Personalized job search based on user preferences
 - **Resume Upload** - Drag-and-drop resume upload with validation
+- **Job Board** - Two-pane job search interface with responsive mobile view
+- **Job Filtering** - Advanced filtering with auto-collapse behavior
+- **Bottom Navigation** - Collapsible navigation with Jobs, Resume, and Profile tabs
+- **Authentication Protection** - Route protection with authorization checks
 - **Next.js 15.5.4** with App Router and TypeScript
 - **Tailwind CSS v4** with custom OKLCH color scheme
 - **Shadcn/ui** component library for consistent UI
@@ -23,7 +27,39 @@ Your friendly AI-powered job search assistant! Pepper is a modern, scalable fron
 3. 👤 **Account Setup** - 3-step personal information collection
 4. 🎯 **Preferences** - Job preferences and career goals
 5. 📄 **Resume Upload** - Upload resume with drag-and-drop
-6. 🎉 **Dashboard** - Ready to search for jobs!
+6. 🎉 **Dashboard** - Access job board and start searching!
+
+### Job Board Features
+- **Two-Pane Layout** - Desktop view with job list (30vw) and detail view (70vw)
+- **Mobile Responsive** - Single-pane view with back navigation
+- **Advanced Filters** - Collapsible filter panel (40vh expanded) with:
+  - Job commitment (Full-time, Part-time, Contract, etc.)
+  - Seniority level (Entry, Mid, Senior, Lead, etc.)
+  - Location filtering
+  - Salary range
+  - Auto-collapse on scroll
+  - Selected filters display in collapsed state
+- **Job Cards** - Complete job information including:
+  - Company logo and details
+  - Job title, location, salary
+  - Commitment type and seniority level
+  - Quick actions (Bookmark, Like, Dislike)
+  - Apply button with external link
+- **Job Detail View** - Comprehensive job information:
+  - Full job description
+  - Requirements summary
+  - Tech stack and tools
+  - Company information
+  - Collapsing sticky header on scroll
+- **Bottom Navigation** - Accessible tab navigation:
+  - Jobs, Resume, and Profile tabs
+  - Auto-collapse after 5 seconds
+  - Smooth animations (500ms bouncy effect)
+  - Active route highlighting
+- **Smooth Animations** - Polish throughout:
+  - Filter slide transitions (300ms)
+  - Navigation collapse/expand
+  - Page transitions
 
 > 📖 See [ONBOARDING_FLOW.md](./ONBOARDING_FLOW.md) for complete documentation
 
@@ -99,13 +135,32 @@ pepper/
 │   │   ├── account-setup/        # 3-step account creation
 │   │   ├── preferences/          # Job preferences collection
 │   │   ├── resume-upload/        # Resume upload page
-│   │   ├── dashboard/            # Main dashboard
+│   │   ├── dashboard/            # Redirects to jobs page
+│   │   ├── jobs/                 # Job board (main feature)
+│   │   ├── resume/               # Resume management
+│   │   ├── profile/              # User profile page
+│   │   ├── unauthorized/         # Auth error page
 │   │   └── globals.css           # Global styles with design system
 │   ├── components/               # Reusable components
 │   │   ├── ui/                   # Shadcn/ui components
+│   │   │   ├── button.tsx        # Button component
+│   │   │   ├── card.tsx          # Card component
+│   │   │   ├── input.tsx         # Input component
+│   │   │   ├── label.tsx         # Label component
+│   │   │   ├── checkbox.tsx      # Checkbox component
+│   │   │   ├── radio-group.tsx   # Radio group component
+│   │   │   ├── select.tsx        # Select dropdown
+│   │   │   └── carousel.tsx      # Carousel component
+│   │   ├── job-card.tsx          # Job listing card
+│   │   ├── job-detail-view.tsx   # Job detail display
+│   │   ├── job-filter.tsx        # Job filter panel
+│   │   ├── bottom-nav.tsx        # Bottom navigation bar
 │   │   ├── theme-provider.tsx    # Theme context provider
 │   │   ├── theme-toggle.tsx      # Dark/light mode toggle
+│   │   ├── resume-center.tsx     # Resume management UI
 │   │   └── error-page.tsx        # Error display component
+│   ├── hooks/                    # Custom React hooks
+│   │   └── useAuthProtection.ts  # Route authorization hook
 │   └── lib/                      # Utilities and configuration
 │       ├── api.ts                # API functions & error handling
 │       ├── data.ts               # Countries, states, codes data
@@ -113,7 +168,8 @@ pepper/
 │       └── utils.ts              # Utility functions
 ├── components.json               # Shadcn/ui configuration
 ├── tailwind.config.js            # Tailwind CSS configuration
-└── ONBOARDING_FLOW.md            # Complete onboarding documentation
+├── ONBOARDING_FLOW.md            # Complete onboarding documentation
+└── README.md                     # This file
 ```
 
 ## 📚 Documentation
@@ -124,6 +180,71 @@ pepper/
   - Technical implementation details
   - Testing guide
   - Future enhancements
+
+## 🧩 Component Architecture
+
+### Job Board Components
+
+#### `<JobCard />`
+Displays job listing in the left pane with:
+- Company logo (object-contain for proper scaling)
+- Job title, location, salary
+- Commitment type and seniority level tags
+- Action buttons: Bookmark, Like, Dislike (secondary variant)
+- Apply button with external link icon (primary variant)
+
+#### `<JobDetailView />`
+Shows full job details in the right pane:
+- Sticky collapsing header (auto-collapses on scroll)
+- Company information section
+- Full job description
+- Requirements summary
+- Tech stack and tools list
+- Independent scroll container
+
+#### `<JobFilter />`
+Collapsible filter panel with advanced features:
+- **Expanded State** - 40vh height with all filter options
+- **Collapsed State** - Compact view showing selected filters as tags
+- **Auto-Collapse** - Triggers on scroll down in job list
+- **Manual Collapse** - "Apply Filters" button
+- **Animations** - Smooth 300ms slide transitions
+- **Filter Types**: Commitment, Seniority, Location, Salary
+
+#### `<BottomNav />`
+Smart navigation bar with three tabs:
+- Jobs, Resume, and Profile navigation
+- Auto-collapse behaviors:
+  - After 5 seconds of expansion
+  - 2 seconds after hover ends
+  - When user scrolls
+- Bouncy animation (500ms cubic-bezier)
+- Active route highlighting
+- Mobile-optimized touch targets
+
+#### `<ThemeToggle />`
+Dark/light mode switcher:
+- Sun/Moon icon toggle
+- System preference detection
+- Smooth theme transitions
+- Available in all authenticated pages
+
+### Responsive Design
+
+#### Desktop (≥768px)
+- Two-pane layout: Job list (30vw) + Detail view (70vw)
+- Independent scrolling for each pane
+- Filter panel at top of left pane
+- Bottom navigation always visible
+- First job auto-selected on load
+
+#### Mobile (<768px)
+- Single-pane view with smooth transitions
+- Job list shows all available jobs
+- Tap job card to view full details
+- Back button to return to list
+- Filter panel slides over content
+- Bottom navigation collapsible for more screen space
 
 ## 🛠️ Available Scripts
 
@@ -145,14 +266,58 @@ localStorage.setItem('pepper-api-url', 'http://localhost:8000/api');
 
 ### API Endpoints
 
-The onboarding flow uses these endpoints:
+#### Onboarding
 - `POST /user/signup/request` - Email signup
 - `GET /user/signup/verify` - Token verification
 - `POST /user/signup/account-setup` - Account creation
 - `POST /user/signup/user-pref` - Save preferences
 - `POST /resume/upload` - Upload resume
 
+#### Job Board
+- `GET /jobs/fetch_jobs` - Fetch job listings (accepts `size` parameter)
+
+#### Authentication
+- `GET /user/check-authorization` - Verify user session
+- `POST /user/logout` - End user session
+
 > 📖 See [ONBOARDING_FLOW.md](./ONBOARDING_FLOW.md) for complete API documentation
+
+## 🔒 Authentication & Authorization
+
+Pepper implements comprehensive route protection to ensure secure access to user-specific features.
+
+### Protected Routes
+
+All authenticated pages use the `useAuthProtection` hook:
+- `/dashboard` - Main dashboard (redirects to `/jobs`)
+- `/jobs` - Job board
+- `/resume` - Resume management
+- `/profile` - User profile
+
+### How It Works
+
+1. **Authorization Check** - On page load, the app verifies the user session via `/user/check-authorization`
+2. **Loading State** - Shows a loading spinner while checking authorization
+3. **Redirect** - Unauthorized users are redirected to `/unauthorized`
+4. **Session Management** - Uses cookies for persistent authentication
+
+### Implementation Example
+
+```typescript
+import { useAuthProtection } from "@/hooks/useAuthProtection";
+
+export default function ProtectedPage() {
+  const { isAuthorized, isChecking } = useAuthProtection();
+
+  // Show loading state while checking
+  if (isChecking) {
+    return <Loader2 className="w-8 h-8 animate-spin" />;
+  }
+
+  // Hook automatically redirects if not authorized
+  return <div>Protected content</div>;
+}
+```
 
 ## 🎯 Built With
 

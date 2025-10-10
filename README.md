@@ -12,6 +12,7 @@ Your friendly AI-powered job search assistant! Pepper is a modern, scalable fron
 - **Job Filtering** - Advanced filtering with auto-collapse behavior
 - **Bottom Navigation** - Collapsible navigation with Jobs, Resume, and Profile tabs
 - **Authentication Protection** - Route protection with authorization checks
+- **Vercel Analytics** - Real-time analytics and performance monitoring across all pages
 - **Next.js 15.5.4** with App Router and TypeScript
 - **Tailwind CSS v4** with custom OKLCH color scheme
 - **Shadcn/ui** component library for consistent UI
@@ -328,6 +329,57 @@ export default function ProtectedPage() {
 - [Lucide React](https://lucide.dev/) - Icon library
 - [next-themes](https://github.com/pacocoursey/next-themes) - Theme switching
 - [Geist Font](https://vercel.com/font) - Typography
+- [Vercel Analytics](https://vercel.com/analytics) - Real-time web analytics
+
+## 📊 Analytics
+
+This project uses **Vercel Analytics** to track real-time user interactions and performance metrics across all pages. Analytics are automatically enabled for all routes including:
+
+- Homepage (Email Signup)
+- Email Verification
+- Account Setup
+- Preferences
+- Resume Upload
+- Dashboard & Jobs
+- Resume Management
+- User Profile
+
+### Features
+- **Real-time Metrics** - Track page views, user sessions, and interactions
+- **Web Vitals** - Monitor Core Web Vitals (LCP, FID, CLS, FCP, TTFB)
+- **Zero Configuration** - Works automatically when deployed to Vercel
+- **Privacy-Focused** - No cookies, GDPR compliant
+- **Performance Impact** - Minimal overhead with automatic code splitting
+
+### Implementation
+
+Analytics are globally enabled in the root layout (`src/app/layout.tsx`):
+
+```tsx
+import { Analytics } from "@vercel/analytics/react";
+
+export default function RootLayout({ children }) {
+  return (
+    <html>
+      <body>
+        {children}
+        <Analytics />
+      </body>
+    </html>
+  );
+}
+```
+
+This ensures all pages in the application automatically send analytics data without requiring individual page modifications.
+
+### Viewing Analytics
+
+Once deployed to Vercel:
+1. Navigate to your project dashboard on Vercel
+2. Click on the "Analytics" tab
+3. View real-time traffic, page views, and performance metrics
+
+> **Note**: Analytics will only collect data when deployed to Vercel. In local development, the component has no effect.
 
 ## 🚀 Deployment
 

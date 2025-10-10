@@ -6,8 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useAuthProtection } from "@/hooks/useAuthProtection";
 
 function SetPasswordContent() {
+  const { isAuthorized, isChecking } = useAuthProtection();
   const router = useRouter();
   const searchParams = useSearchParams();
   const authToken = searchParams.get("auth_token") || "";
@@ -148,6 +150,11 @@ function SetPasswordContent() {
   }
 
   const validationError = validatePassword();
+
+  // Don't render until authorization is confirmed
+  if (isChecking || !isAuthorized) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">

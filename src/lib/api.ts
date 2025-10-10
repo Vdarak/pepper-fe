@@ -163,6 +163,46 @@ export async function logoutRequest(): Promise<{ message: string }> {
 }
 
 /**
+ * Check user authorization
+ */
+export async function checkAuthorization(): Promise<{ authorized: boolean; message?: string }> {
+  try {
+    const response = await fetch(`${getApiUrl()}/user/authorize`, {
+      method: 'GET',
+      credentials: 'include', // Include cookies
+    });
+
+    console.log('🔍 Authorization Check:', {
+      status: response.status,
+      ok: response.ok,
+    });
+
+    // If 200, user is authorized
+    if (response.ok) {
+      return { authorized: true };
+    }
+
+    // If 401, user is unauthorized
+    if (response.status === 401) {
+      let message = 'Unauthorized';
+      try {
+        const data = await response.json();
+        message = data.message || message;
+      } catch (e) {
+        // Response might not be JSON
+      }
+      return { authorized: false, message };
+    }
+
+    // Any other status code is treated as unauthorized
+    return { authorized: false, message: 'Authorization check failed' };
+  } catch (error) {
+    console.error('❌ Authorization check error:', error);
+    return { authorized: false, message: 'Network error during authorization check' };
+  }
+}
+
+/**
  * Resend verification email
  */
 export async function resendVerificationEmail(email: string): Promise<ApiResponse> {

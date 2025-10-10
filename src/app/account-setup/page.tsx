@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useRouter, useSearchParams } from "next/navigation";
 import { completeAccountSetup, ApiError, type AccountSetupData } from "@/lib/api";
 import { US_STATES } from "@/lib/data";
+import { useAuthProtection } from "@/hooks/useAuthProtection";
 
 interface FormData {
   first_name: string;
@@ -24,6 +25,7 @@ interface FormData {
 }
 
 function AccountSetupContent() {
+  const { isAuthorized, isChecking } = useAuthProtection();
   const router = useRouter();
   const searchParams = useSearchParams();
   const email = searchParams.get("email") || "";
@@ -402,6 +404,11 @@ function AccountSetupContent() {
         return null;
     }
   };
+
+  // Don't render until authorization is confirmed
+  if (isChecking || !isAuthorized) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">

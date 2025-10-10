@@ -11,6 +11,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { useRouter } from "next/navigation";
 import { submitUserPreferences, ApiError, type UserPreferencesData } from "@/lib/api";
+import { useAuthProtection } from "@/hooks/useAuthProtection";
 
 interface FormData {
   job_title: string;
@@ -54,6 +55,7 @@ const CAREER_GOALS = [
 ];
 
 function PreferencesContent() {
+  const { isAuthorized, isChecking } = useAuthProtection();
   const router = useRouter();
   const [currentSection, setCurrentSection] = useState<"role" | "goal">("role");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -470,6 +472,11 @@ function PreferencesContent() {
       </div>
     </div>
   );
+
+  // Don't render until authorization is confirmed
+  if (isChecking || !isAuthorized) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">

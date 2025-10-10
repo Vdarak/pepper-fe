@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { useRouter } from "next/navigation";
 import { uploadResume, ApiError } from "@/lib/api";
+import { useAuthProtection } from "@/hooks/useAuthProtection";
 
 interface FormData {
   file: File | null;
@@ -21,6 +22,7 @@ interface UploadStatus {
 }
 
 function ResumeUploadContent() {
+  const { isAuthorized, isChecking } = useAuthProtection();
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [formData, setFormData] = useState<FormData>({
@@ -180,6 +182,11 @@ function ResumeUploadContent() {
       </div>
     );
   };
+
+  // Don't render until authorization is confirmed
+  if (isChecking || !isAuthorized) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">

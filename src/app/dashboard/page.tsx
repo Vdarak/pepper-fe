@@ -6,8 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { logoutRequest, ApiError } from "@/lib/api";
 import ResumeCenter from "@/components/resume-center";
+import { useAuthProtection } from "@/hooks/useAuthProtection";
 
 export default function DashboardPage() {
+  const { isAuthorized, isChecking } = useAuthProtection();
   const [userEmail, setUserEmail] = useState<string>("");
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
@@ -51,6 +53,11 @@ export default function DashboardPage() {
       setIsLoggingOut(false);
     }
   };
+
+  // Don't render until authorization is confirmed
+  if (isChecking || !isAuthorized) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-background">

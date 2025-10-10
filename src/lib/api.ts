@@ -329,4 +329,208 @@ export async function uploadResume(data: ResumeUploadData): Promise<ResumeUpload
   return responseData;
 }
 
-export { ApiError, getApiUrl, type AccountSetupData, type UserPreferencesData, type ResumeUploadData };
+interface ResumeReUploadData {
+  file: File;
+  name: string;
+  id_resume: string;
+}
+
+/**
+ * Re-upload an existing resume
+ */
+export async function reUploadResume(data: ResumeReUploadData): Promise<ResumeUploadResponse> {
+  // Validate required fields
+  if (!data.file) {
+    throw new ApiError(400, 'Resume file is required');
+  }
+  
+  if (!data.name || !data.name.trim()) {
+    throw new ApiError(400, 'Resume name is required');
+  }
+  
+  if (!data.id_resume || !data.id_resume.trim()) {
+    throw new ApiError(400, 'Resume ID is required');
+  }
+
+  console.log('✓ Resume re-upload payload validation passed:', {
+    name: data.name,
+    id_resume: data.id_resume,
+    file_size: data.file.size,
+    file_name: data.file.name
+  });
+
+  // Create FormData for file upload
+  const formData = new FormData();
+  formData.append('file', data.file);
+  formData.append('name', data.name.trim());
+  formData.append('id_resume', data.id_resume.trim());
+
+  const url = `${getApiUrl()}/resume/re-upload`;
+  
+  console.log('🔍 API Request (Re-upload):', {
+    url,
+    method: 'POST',
+    name: data.name,
+    id_resume: data.id_resume
+  });
+
+  const response = await fetch(url, {
+    method: 'POST',
+    body: formData,
+    credentials: 'include', // Include cookies
+    // Note: Don't set Content-Type header - browser will set it with boundary for multipart/form-data
+  });
+
+  let responseData;
+  try {
+    responseData = await response.json();
+  } catch (error) {
+    console.error('❌ Failed to parse response as JSON:', error);
+    throw new ApiError(response.status, 'Invalid response from server');
+  }
+
+  console.log('✅ API Response (Re-upload):', {
+    status: response.status,
+    ok: response.ok,
+    data: responseData
+  });
+
+  if (!response.ok) {
+    throw new ApiError(
+      response.status,
+      responseData.message || responseData.error || `Resume re-upload failed: ${response.status}`
+    );
+  }
+
+  return responseData;
+}
+
+// ===== Resume Management APIs =====
+
+interface Resume {
+  Name: string;
+  IsUploaded: boolean;
+  CreatedOn: string;
+  UpdatedOn: string;
+  IDResume: string;
+  Analyzed: boolean;
+}
+
+interface ResumeListResponse {
+  resumes: Resume[];
+}
+
+interface ResumeDeleteResponse {
+  message: string;
+  resume_id: string;
+}
+
+interface ResumeRenameResponse {
+  message: string;
+  resume_id: string;
+}
+
+/**
+ * List all resumes
+ */
+export async function listResumes(count: number = 15): Promise<ResumeListResponse> {
+  return apiRequest<ResumeListResponse>('/resume/list', {
+    method: 'POST',
+    body: JSON.stringify({ count }),
+    credentials: 'include',
+  });
+}
+
+/**
+ * Delete a resume
+ */
+export async function deleteResume(resumeId: string): Promise<ResumeDeleteResponse> {
+  if (!resumeId || !resumeId.trim()) {
+    throw new ApiError(400, 'Resume ID is required');
+  }
+
+  return apiRequest<ResumeDeleteResponse>('/resume/delete', {
+    method: 'POST',
+    body: JSON.stringify({ resume_id: resumeId.trim() }),
+    credentials: 'include',
+  });
+}
+
+/**
+ * Rename a resume
+ */
+export async function renameResume(resumeId: string, newName: string): Promise<ResumeRenameResponse> {
+  if (!resumeId || !resumeId.trim()) {
+    throw new ApiError(400, 'Resume ID is required');
+  }
+
+  if (!newName || !newName.trim()) {
+    throw new ApiError(400, 'New name is required');
+  }
+
+  return apiRequest<ResumeRenameResponse>('/resume/rename', {
+    method: 'POST',
+    body: JSON.stringify({ 
+      resume_id: resumeId.trim(),
+      new_name: newName.trim()
+    }),
+    credentials: 'include',
+  });
+}
+
+/**
+ * Download a resume
+ */
+export async function downloadResume(resumeId: string): Promise<Blob> {
+  if (!resumeId || !resumeId.trim()) {
+    throw new ApiError(400, 'Resume ID is required');
+  }
+
+  const url = `${getApiUrl()}/resume/download`;
+  
+  console.log('🔍 API Request (Download):', {
+    url,
+    method: 'POST',
+    resume_id: resumeId
+  });
+
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ resume_id: resumeId.trim() }),
+    credentials: 'include',
+  });
+
+  if (!response.ok) {
+    let errorMessage = `Download failed: ${response.status}`;
+    try {
+      const errorData = await response.json();
+      errorMessage = errorData.message || errorData.error || errorMessage;
+    } catch (e) {
+      // If response is not JSON, use default error message
+    }
+    throw new ApiError(response.status, errorMessage);
+  }
+
+  console.log('✅ Download Response:', {
+    status: response.status,
+    contentType: response.headers.get('content-type'),
+  });
+
+  return response.blob();
+}
+
+export { 
+  ApiError, 
+  getApiUrl, 
+  type AccountSetupData, 
+  type UserPreferencesData, 
+  type ResumeUploadData,
+  type ResumeReUploadData,
+  type Resume,
+  type ResumeListResponse,
+  type ResumeDeleteResponse,
+  type ResumeRenameResponse
+};

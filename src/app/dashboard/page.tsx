@@ -5,6 +5,7 @@ import { User, Settings, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { logoutRequest, ApiError } from "@/lib/api";
+import ResumeCenter from "@/components/resume-center";
 
 export default function DashboardPage() {
   const [userEmail, setUserEmail] = useState<string>("");
@@ -88,7 +89,7 @@ export default function DashboardPage() {
         </header>
 
         {/* Success Message */}
-        <div className="max-w-2xl mx-auto">
+        <div className="max-w-4xl mx-auto space-y-6">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -105,18 +106,11 @@ export default function DashboardPage() {
                 <li>✅ Password set successfully</li>
                 <li>✅ Account is now active</li>
               </ul>
-              
-              <div className="pt-4 border-t">
-                <p className="text-sm text-muted-foreground mb-4">
-                  This is a placeholder dashboard. The actual application features will be implemented next.
-                </p>
-                <Button className="w-full">
-                  <Settings className="h-4 w-4 mr-2" />
-                  Explore Dashboard Features (Coming Soon)
-                </Button>
-              </div>
             </CardContent>
           </Card>
+
+          {/* Resume Center */}
+          <ResumeCenter />
         </div>
       </div>
     </div>

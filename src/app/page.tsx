@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Phone, Mail, ArrowRight, Zap, Shield, Users, Smartphone, Save, Settings } from "lucide-react";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -169,9 +170,18 @@ export default function LandingPage() {
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <header className="text-center mb-16">
-          <h1 className="text-8xl md:text-9xl font-bold text-primary mb-4 tracking-tight">
-            PEPPER
-          </h1>
+          <div className="flex items-center justify-center gap-4 mb-4">
+            <Image 
+              src="/pepper-logo.svg" 
+              alt="Pepper Logo" 
+              width={120} 
+              height={120}
+              className="w-24 h-24 md:w-32 md:h-32"
+            />
+            <h1 className="text-8xl md:text-9xl font-bold text-primary tracking-tight">
+              PEPPER
+            </h1>
+          </div>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-8">
             Your AI job hunt assistant - combining the efficiency of Pepper Potts with the career savvy of Donna Paulsen
           </p>

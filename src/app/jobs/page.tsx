@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Sparkles, LogOut, Loader2 } from "lucide-react";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { fetchJobs, logoutRequest, JobListing, ApiError } from "@/lib/api";
 import { useAuthProtection } from "@/hooks/useAuthProtection";
@@ -123,7 +124,16 @@ export default function JobsPage() {
       <header className="shrink-0 bg-background border-b border-border">
         <div className="px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <h1 className="text-2xl font-bold">Pepper</h1>
+            <div className="flex items-center gap-2">
+              <Image 
+                src="/pepper-logo.svg" 
+                alt="Pepper Logo" 
+                width={32} 
+                height={32}
+                className="w-8 h-8"
+              />
+              <h1 className="text-2xl font-bold">Pepper</h1>
+            </div>
             <div className="hidden md:flex items-center gap-3">
               <div className="h-6 w-px bg-border" />
               <h2 className="text-lg font-medium text-muted-foreground">Jobs</h2>

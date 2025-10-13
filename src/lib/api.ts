@@ -578,7 +578,7 @@ export async function fetchResumeInfo(resumeId: string): Promise<ResumeInfoRespo
     throw new ApiError(400, 'Resume ID is required');
   }
 
-  return apiRequest<ResumeInfoResponse>('/resume/edit/fetch-info', {
+  return apiRequest<ResumeInfoResponse>('/resume/edit/fetch', {
     method: 'POST',
     body: JSON.stringify({ IDResume: resumeId.trim() }),
     credentials: 'include',

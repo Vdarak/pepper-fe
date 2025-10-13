@@ -9,6 +9,7 @@ import { ProjectsEditor } from "./sections/projects-editor";
 import { ExperienceEditor } from "./sections/experience-editor";
 import { CertificationsEditor } from "./sections/certifications-editor";
 import { SummaryEditor } from "./sections/summary-editor";
+import { AddSectionButtons, AvailableSectionType } from "./add-section-buttons";
 import {
   DndContext,
   closestCenter,
@@ -26,7 +27,7 @@ import {
   arrayMove,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { ChevronDown, ChevronUp, GripVertical, Pencil } from "lucide-react";
+import { ChevronDown, ChevronUp, GripVertical, Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -36,18 +37,33 @@ interface EditorPaneProps {
   onUpdateSection: (sectionName: string, newData: any) => void;
   onReorderSections: (newOrder: string[]) => void;
   onUpdateSectionTitle?: (oldTitle: string, newTitle: string) => void;
+  onAddSection?: (sectionName: string) => void;
+  onDeleteSection?: (sectionName: string) => void;
   isMobile?: boolean;
 }
+
+// Available section types that can be added
+const AVAILABLE_SECTION_TYPES: AvailableSectionType[] = [
+  { name: "summary", displayName: "Summary" },
+  { name: "skills", displayName: "Skills" },
+  { name: "education", displayName: "Education" },
+  { name: "professional experience", displayName: "Professional Experience" },
+  { name: "research experience", displayName: "Research Experience" },
+  { name: "projects", displayName: "Projects" },
+  { name: "certifications and achievements", displayName: "Certifications & Achievements" },
+];
 
 function SortableSectionWrapper({
   sectionName,
   children,
   onUpdateSectionTitle,
+  onDeleteSection,
   isOverlay = false,
 }: {
   sectionName: string;
   children: React.ReactNode;
   onUpdateSectionTitle?: (oldTitle: string, newTitle: string) => void;
+  onDeleteSection?: (sectionName: string) => void;
   isOverlay?: boolean;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
@@ -85,6 +101,12 @@ function SortableSectionWrapper({
     setIsEditingTitle(false);
   };
 
+  const handleDelete = () => {
+    if (onDeleteSection && confirm(`Are you sure you want to delete the "${sectionName}" section?`)) {
+      onDeleteSection(sectionName);
+    }
+  };
+
   return (
     <div ref={handleRef} style={style} className="relative">
       {!isOverlay && (
@@ -95,10 +117,13 @@ function SortableSectionWrapper({
         </div>
       )}
       <div className="border rounded-lg overflow-hidden">
-        <button
-          onClick={() => setIsCollapsed(!isCollapsed)}
-          className="w-full flex items-center justify-between px-4 py-3 bg-muted/30 hover:bg-muted/50 transition-colors"
-          disabled={isOverlay}
+        <div
+          className="w-full flex items-center justify-between px-4 py-3 bg-muted/30 hover:bg-muted/50 transition-colors cursor-pointer"
+          onClick={(e) => {
+            if (!isOverlay && !isEditingTitle) {
+              setIsCollapsed(!isCollapsed);
+            }
+          }}
         >
           <div 
             className="flex items-center gap-2 group/title"
@@ -136,14 +161,39 @@ function SortableSectionWrapper({
               </>
             )}
           </div>
-          <Button variant="ghost" size="icon" className="h-8 w-8">
-            {isCollapsed ? (
-              <ChevronDown className="h-4 w-4" />
-            ) : (
-              <ChevronUp className="h-4 w-4" />
+          <div className="flex items-center gap-2">
+            {onDeleteSection && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleDelete();
+                }}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
             )}
-          </Button>
-        </button>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="h-8 w-8"
+              onClick={(e) => {
+                e.stopPropagation();
+                if (!isOverlay) {
+                  setIsCollapsed(!isCollapsed);
+                }
+              }}
+            >
+              {isCollapsed ? (
+                <ChevronDown className="h-4 w-4" />
+              ) : (
+                <ChevronUp className="h-4 w-4" />
+              )}
+            </Button>
+          </div>
+        </div>
         {!isCollapsed && <div className="p-4">{children}</div>}
       </div>
     </div>
@@ -156,6 +206,8 @@ export function EditorPane({
   onUpdateSection,
   onReorderSections,
   onUpdateSectionTitle,
+  onAddSection,
+  onDeleteSection,
   isMobile,
 }: EditorPaneProps) {
   const [activeSectionId, setActiveSectionId] = useState<string | null>(null);
@@ -214,8 +266,8 @@ export function EditorPane({
       );
     }
     if (
-      (sectionName === "research experience" || sectionName === "professional experience") &&
-      (sectionData.section === "research experience" || sectionData.section === "professional experience")
+      (sectionName === "research experience" || sectionName === "professional experience" || sectionName === "experience") &&
+      (sectionData.section === "research experience" || sectionData.section === "professional experience" || sectionData.section === "experience")
     ) {
       return (
         <ExperienceEditor
@@ -241,7 +293,16 @@ export function EditorPane({
         />
       );
     }
-    return null;
+    
+    // For custom sections or unknown section types, use the generic experience editor
+    // This provides a basic structure that works for most custom sections
+    return (
+      <ExperienceEditor
+        title={sectionName}
+        data={Array.isArray((sectionData as any).item) ? (sectionData as any).item : [(sectionData as any).item]}
+        onUpdate={(newData: any) => onUpdateSection(sectionName, newData)}
+      />
+    );
   };
 
   return (
@@ -256,6 +317,15 @@ export function EditorPane({
             <HeaderEditor header={resumeData.header} onUpdate={onUpdateHeader} />
           </div>
         </div>
+
+        {/* Add Section Buttons */}
+        {onAddSection && (
+          <AddSectionButtons
+            onAddSection={onAddSection}
+            existingSections={resumeData.section_idx}
+            availableSectionTypes={AVAILABLE_SECTION_TYPES}
+          />
+        )}
 
         {/* Draggable Sections */}
         <DndContext
@@ -273,6 +343,7 @@ export function EditorPane({
                 key={sectionName} 
                 sectionName={sectionName}
                 onUpdateSectionTitle={onUpdateSectionTitle}
+                onDeleteSection={onDeleteSection}
               >
                 {renderSectionContent(sectionName)}
               </SortableSectionWrapper>
@@ -285,6 +356,7 @@ export function EditorPane({
                 <SortableSectionWrapper 
                   sectionName={activeSectionId}
                   onUpdateSectionTitle={onUpdateSectionTitle}
+                  onDeleteSection={onDeleteSection}
                   isOverlay={true}
                 >
                   {renderSectionContent(activeSectionId)}

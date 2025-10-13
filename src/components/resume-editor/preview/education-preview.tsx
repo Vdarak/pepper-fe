@@ -31,13 +31,15 @@ function EducationItem({
   education,
   onUpdate,
   isOverlay = false,
+  itemId,
 }: {
   education: Education;
   onUpdate: (newEdu: Education) => void;
   isOverlay?: boolean;
+  itemId?: string;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
-    useSortable({ id: education.university + education.major });
+    useSortable({ id: itemId || education.university + education.major });
 
   const style = isOverlay
     ? {}
@@ -177,8 +179,8 @@ export function EducationPreview({ data, onUpdate, hideTitle }: EducationPreview
     const { active, over } = event;
 
     if (over && active.id !== over.id) {
-      const oldIndex = data.findIndex((e) => e.university + e.major === active.id);
-      const newIndex = data.findIndex((e) => e.university + e.major === over.id);
+      const oldIndex = data.findIndex((e, i) => `edu-${i}` === active.id);
+      const newIndex = data.findIndex((e, i) => `edu-${i}` === over.id);
       const newData = arrayMove(data, oldIndex, newIndex);
       onUpdate(newData);
     }
@@ -206,13 +208,14 @@ export function EducationPreview({ data, onUpdate, hideTitle }: EducationPreview
         onDragEnd={handleDragEnd}
       >
         <SortableContext
-          items={data.map((e) => e.university + e.major)}
+          items={data.map((e, i) => `edu-${i}`)}
           strategy={verticalListSortingStrategy}
         >
           <div className="pl-6">
             {data.map((education, index) => (
               <EducationItem
-                key={education.university + education.major}
+                key={`edu-${index}`}
+                itemId={`edu-${index}`}
                 education={education}
                 onUpdate={(newEdu) => updateEducation(index, newEdu)}
               />
@@ -222,7 +225,7 @@ export function EducationPreview({ data, onUpdate, hideTitle }: EducationPreview
         <DragOverlay dropAnimation={null}>
           {activeEduId ? (
             <EducationItem
-              education={data.find((e) => e.university + e.major === activeEduId)!}
+              education={data.find((e, i) => `edu-${i}` === activeEduId)!}
               onUpdate={() => {}}
               isOverlay={true}
             />

@@ -77,15 +77,17 @@ function ProjectItem({
   project,
   onUpdate,
   isOverlay = false,
+  itemId,
 }: {
   project: Project;
   onUpdate: (newProject: Project) => void;
   isOverlay?: boolean;
+  itemId?: string;
 }) {
   const [activeBulletId, setActiveBulletId] = useState<string | null>(null);
-  const projectId = project.title.replace(/\s+/g, "-");
+  const projectId = itemId || project.title.replace(/\s+/g, "-");
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
-    useSortable({ id: project.title });
+    useSortable({ id: itemId || project.title });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -248,8 +250,8 @@ export function ProjectsPreview({ data, onUpdate, hideTitle }: ProjectsPreviewPr
     setActiveProjectId(null);
 
     if (over && active.id !== over.id) {
-      const oldIndex = data.findIndex((p) => p.title === active.id);
-      const newIndex = data.findIndex((p) => p.title === over.id);
+      const oldIndex = data.findIndex((p, i) => `project-${i}` === active.id);
+      const newIndex = data.findIndex((p, i) => `project-${i}` === over.id);
       const newData = arrayMove(data, oldIndex, newIndex);
       onUpdate(newData);
     }
@@ -275,13 +277,14 @@ export function ProjectsPreview({ data, onUpdate, hideTitle }: ProjectsPreviewPr
         onDragEnd={handleDragEnd}
       >
         <SortableContext
-          items={data.map((p) => p.title)}
+          items={data.map((p, i) => `project-${i}`)}
           strategy={verticalListSortingStrategy}
         >
           <div className="pl-6">
             {data.map((project, index) => (
               <ProjectItem
-                key={project.title}
+                key={`project-${index}`}
+                itemId={`project-${index}`}
                 project={project}
                 onUpdate={(newProject) => updateProject(index, newProject)}
               />
@@ -291,7 +294,7 @@ export function ProjectsPreview({ data, onUpdate, hideTitle }: ProjectsPreviewPr
         <DragOverlay dropAnimation={null}>
           {activeProjectId ? (
             <ProjectItem
-              project={data.find((p) => p.title === activeProjectId)!}
+              project={data.find((p, i) => `project-${i}` === activeProjectId)!}
               onUpdate={() => {}}
               isOverlay={true}
             />

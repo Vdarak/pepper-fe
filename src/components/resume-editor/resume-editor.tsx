@@ -3,13 +3,15 @@
 import { useState, useCallback, useEffect } from "react";
 import { DndContext, DragEndEvent, closestCenter } from "@dnd-kit/core";
 import { arrayMove } from "@dnd-kit/sortable";
-import { ResumeData } from "@/types/resume";
+import { ResumeData, SectionItem } from "@/types/resume";
 import { EditorPane } from "./editor-pane";
 import { PreviewPane } from "./preview-pane";
 import { FloatingMinimap } from "./floating-minimap";
 import { Button } from "@/components/ui/button";
 import { Save, X, Download, Monitor } from "lucide-react";
 import { convertResumeDataToApi } from "@/lib/resume-converter";
+import { generateUUID } from "@/lib/utils";
+import { createDefaultSectionData, getSectionDisplayName } from "@/lib/section-defaults";
 
 interface ResumeEditorProps {
   initialData: ResumeData;
@@ -107,6 +109,87 @@ export default function ResumeEditor({ initialData, onClose, onSave }: ResumeEdi
     });
   }, []);
 
+  // Add new section
+  const addSection = useCallback((sectionName: string) => {
+    const normalizedName = sectionName.toLowerCase();
+    
+    // Generate a new UUID for this section
+    const newSectionId = generateUUID();
+    
+    // Create default data for the section
+    const defaultData = createDefaultSectionData(normalizedName);
+    
+    // Create the new section item
+    const newSectionItem: SectionItem = {
+      section: normalizedName as any,
+      item: defaultData,
+    };
+    
+    setResumeData((prev) => {
+      // Add section ID to the map
+      const newSectionIds = {
+        ...(prev.sectionIds || {}),
+        [normalizedName]: newSectionId,
+      };
+      
+      return {
+        ...prev,
+        data: [...prev.data, newSectionItem],
+        section_idx: [...prev.section_idx, normalizedName],
+        sectionIds: newSectionIds,
+      };
+    });
+  }, []);
+
+  // Delete section (mark as DELETED)
+  const deleteSection = useCallback((sectionName: string) => {
+    const normalizedName = sectionName.toLowerCase();
+    
+    // Get the section ID before deletion
+    const sectionId = resumeData.sectionIds?.[normalizedName];
+    
+    if (!sectionId) {
+      // If no section ID, just remove from data (it was never saved)
+      setResumeData((prev) => ({
+        ...prev,
+        data: prev.data.filter((section) => section.section !== normalizedName),
+        section_idx: prev.section_idx.filter((name) => name !== normalizedName),
+      }));
+      return;
+    }
+    
+    // Mark section as deleted by changing its title and storing the ID
+    setResumeData((prev) => {
+      const newData = prev.data.map((section) =>
+        section.section === normalizedName
+          ? { 
+              ...section, 
+              section: "<--DELETED-->" as any,
+              // Store the ID directly in the section item so we can retrieve it later
+              _deletedId: sectionId
+            }
+          : section
+      );
+      
+      // Remove from section_idx so it doesn't show in UI
+      const newSectionIdx = prev.section_idx.filter((name) => name !== normalizedName);
+      
+      // Keep the section ID mapping for reference
+      const newSectionIds = {
+        ...(prev.sectionIds || {}),
+        [`<--DELETED-->-${sectionId}`]: sectionId,
+      };
+      delete newSectionIds[normalizedName];
+      
+      return {
+        ...prev,
+        data: newData as any,
+        section_idx: newSectionIdx,
+        sectionIds: newSectionIds,
+      };
+    });
+  }, [resumeData.sectionIds]);
+
   // Handle drag end for sections
   const handleDragEnd = useCallback((event: DragEndEvent) => {
     const { active, over } = event;
@@ -140,7 +223,7 @@ export default function ResumeEditor({ initialData, onClose, onSave }: ResumeEdi
 
   const handleDownloadJSON = () => {
     // Convert to API format (with 'entity' instead of 'company/university')
-    const apiFormat = convertResumeDataToApi(resumeData);
+    const apiFormat = convertResumeDataToApi(resumeData, resumeData.sectionIds || {});
     
     // Create a clean export format
     const exportData = {
@@ -233,6 +316,8 @@ export default function ResumeEditor({ initialData, onClose, onSave }: ResumeEdi
               onUpdateSection={updateSection}
               onReorderSections={reorderSections}
               onUpdateSectionTitle={updateSectionTitle}
+              onAddSection={addSection}
+              onDeleteSection={deleteSection}
               isMobile={isMobile}
             />
           )}

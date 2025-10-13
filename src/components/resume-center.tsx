@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { Upload, RefreshCw, Edit2, Download, Trash2, Check, X, UploadCloud, FileEdit } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,15 +13,12 @@ import {
   downloadResume,
   uploadResume,
   reUploadResume,
-  fetchResumeInfo,
   ApiError,
   type Resume,
 } from "@/lib/api";
-import ResumeEditor from "@/components/resume-editor/resume-editor";
-import { ResumeData } from "@/types/resume";
-import { convertApiToResumeData } from "@/lib/resume-converter";
 
 export default function ResumeCenter() {
+  const router = useRouter();
   const [resumes, setResumes] = useState<Resume[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
@@ -30,12 +28,6 @@ export default function ResumeCenter() {
   const [uploadName, setUploadName] = useState("");
   const [reUploadingId, setReUploadingId] = useState<string | null>(null);
   const reUploadFileInputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
-  const [showEditor, setShowEditor] = useState(false);
-  const [editorData, setEditorData] = useState<ResumeData | null>(null);
-  const [currentResumeId, setCurrentResumeId] = useState<string | null>(null);
-  const [isLoadingEditor, setIsLoadingEditor] = useState(false);
-  // Store section IDs for saving (map of section title -> IDResumeSection)
-  const [currentSectionIds, setCurrentSectionIds] = useState<{ [key: string]: string }>({});
 
   // Fetch resumes from API
   const fetchResumes = async () => {
@@ -252,66 +244,11 @@ export default function ResumeCenter() {
   };
 
   // Function to open editor with specific resume data
+  // Navigate to editor page
   const openEditorWithResume = async (resume: Resume) => {
-    setIsLoadingEditor(true);
-    try {
-      // Fetch resume data from API
-      const apiData = await fetchResumeInfo(resume.IDResume);
-      
-      // Store section IDs for later use when saving
-      const sectionIdsMap: { [key: string]: string } = {};
-      apiData.resume_data.forEach(section => {
-        sectionIdsMap[section.SectionTitle.toLowerCase()] = section.IDResumeSection;
-      });
-      setCurrentSectionIds(sectionIdsMap);
-      
-      // Convert API data to editor format
-      const editorData = convertApiToResumeData(apiData);
-      
-      // Set the editor data and open editor
-      setEditorData(editorData);
-      setCurrentResumeId(resume.IDResume);
-      setShowEditor(true);
-    } catch (error) {
-      console.error('Failed to load resume:', error);
-      alert('Failed to load resume data. Please try again.');
-    } finally {
-      setIsLoadingEditor(false);
-    }
+    // Navigate to the dedicated editor route
+    router.push(`/resume/${resume.IDResume}/edit`);
   };
-
-  // Handle editor save
-  const handleEditorSave = (data: ResumeData) => {
-    console.log("Resume data saved:", data);
-    console.log("Resume ID:", currentResumeId);
-    console.log("Section IDs:", currentSectionIds);
-    
-    if (currentResumeId) {
-      // TODO: Implement API call to save resume data
-      // const apiPayload = convertResumeDataToApi(data, currentSectionIds);
-      alert(`Resume saved for ID: ${currentResumeId}! (API integration pending)`);
-    }
-    
-    setShowEditor(false);
-  };
-
-  // Close editor
-  const closeEditor = () => {
-    setShowEditor(false);
-    setCurrentResumeId(null);
-    setCurrentSectionIds({});
-  };
-
-  // Show editor if open
-  if (showEditor && editorData) {
-    return (
-      <ResumeEditor
-        initialData={editorData}
-        onClose={closeEditor}
-        onSave={handleEditorSave}
-      />
-    );
-  }
 
   return (
     <Card className="w-full">
@@ -473,13 +410,9 @@ export default function ResumeCenter() {
                             variant="ghost"
                             className="h-8 w-8 p-0"
                             title={resume.IsParsed ? "Edit Resume" : "Resume not parsed yet - editing disabled"}
-                            disabled={isLoadingEditor || !resume.IsParsed}
+                            disabled={!resume.IsParsed}
                           >
-                            {isLoadingEditor ? (
-                              <div className="animate-spin rounded-full h-3.5 w-3.5 border-b-2 border-current"></div>
-                            ) : (
-                              <FileEdit className={`h-3.5 w-3.5 ${!resume.IsParsed ? 'opacity-40' : ''}`} />
-                            )}
+                            <FileEdit className={`h-3.5 w-3.5 ${!resume.IsParsed ? 'opacity-40' : ''}`} />
                           </Button>
                           <Button
                             onClick={() => startEdit(resume)}

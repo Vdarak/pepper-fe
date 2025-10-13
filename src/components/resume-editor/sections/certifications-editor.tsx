@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Plus, X, GripVertical } from "lucide-react";
@@ -9,6 +10,8 @@ import {
   DndContext,
   closestCenter,
   DragEndEvent,
+  DragStartEvent,
+  DragOverlay,
   PointerSensor,
   useSensor,
   useSensors,
@@ -31,20 +34,24 @@ function SortableCertification({
   index,
   onUpdate,
   onRemove,
+  isOverlay = false,
 }: {
   certification: Certification;
   index: number;
   onUpdate: (value: Certification) => void;
   onRemove: () => void;
+  isOverlay?: boolean;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id: `cert-${index}` });
 
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.5 : 1,
-  };
+  const style = isOverlay
+    ? {}
+    : {
+        transform: CSS.Transform.toString(transform),
+        transition,
+        opacity: isDragging ? 0 : 1,
+      };
 
   const updateDescription = (descIndex: number, value: string) => {
     const newDesc = [...certification.description];
@@ -65,9 +72,9 @@ function SortableCertification({
   };
 
   return (
-    <div ref={setNodeRef} style={style} className="border rounded-lg p-4 space-y-3">
+    <div ref={isOverlay ? undefined : setNodeRef} style={style} className="border rounded-lg p-4 space-y-3">
       <div className="flex gap-2">
-        <div {...attributes} {...listeners} className="cursor-grab pt-3">
+        <div {...(isOverlay ? {} : attributes)} {...(isOverlay ? {} : listeners)} className="cursor-grab pt-3">
           <GripVertical className="h-4 w-4 text-muted-foreground" />
         </div>
         <div className="flex-1 space-y-3">
@@ -76,12 +83,14 @@ function SortableCertification({
             onChange={(e) => onUpdate({ ...certification, title: e.target.value })}
             placeholder="Certification or achievement title..."
             className="font-medium"
+            disabled={isOverlay}
           />
           <div className="grid grid-cols-2 gap-2">
             <Input
               value={certification.entity}
               onChange={(e) => onUpdate({ ...certification, entity: e.target.value })}
               placeholder="Organization..."
+              disabled={isOverlay}
             />
             <Input
               value={certification.duration.end}
@@ -101,35 +110,39 @@ function SortableCertification({
       </div>
 
       {/* Description bullets */}
-      <div className="ml-6 space-y-2">
-        {certification.description.map((desc, descIndex) => (
-          <div key={descIndex} className="flex gap-2">
-            <Textarea
-              value={desc}
-              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => updateDescription(descIndex, e.target.value)}
-              placeholder="Description point..."
-              className="min-h-[60px]"
-            />
-            <Button
-              onClick={() => removeDescription(descIndex)}
-              size="icon"
-              variant="ghost"
-              className="mt-1"
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
-        ))}
-        <Button onClick={addDescription} size="sm" variant="outline">
-          <Plus className="mr-1 h-3 w-3" />
-          Add Description
-        </Button>
-      </div>
+      {!isOverlay && (
+        <div className="ml-6 space-y-2">
+          {certification.description.map((desc, descIndex) => (
+            <div key={descIndex} className="flex gap-2">
+              <Textarea
+                value={desc}
+                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => updateDescription(descIndex, e.target.value)}
+                placeholder="Description point..."
+                className="min-h-[60px]"
+              />
+              <Button
+                onClick={() => removeDescription(descIndex)}
+                size="icon"
+                variant="ghost"
+                className="mt-1"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          ))}
+          <Button onClick={addDescription} size="sm" variant="outline">
+            <Plus className="mr-1 h-3 w-3" />
+            Add Description
+          </Button>
+        </div>
+      )}
     </div>
   );
 }
 
 export function CertificationsEditor({ data, onUpdate }: CertificationsEditorProps) {
+  const [activeCertId, setActiveCertId] = useState<string | null>(null);
+  
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
@@ -137,6 +150,10 @@ export function CertificationsEditor({ data, onUpdate }: CertificationsEditorPro
       },
     })
   );
+
+  const handleDragStart = (event: DragStartEvent) => {
+    setActiveCertId(event.active.id as string);
+  };
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
@@ -147,6 +164,8 @@ export function CertificationsEditor({ data, onUpdate }: CertificationsEditorPro
       const newData = arrayMove(data, activeIndex, overIndex);
       onUpdate(newData);
     }
+    
+    setActiveCertId(null);
   };
 
   const updateCertification = (index: number, value: Certification) => {
@@ -192,6 +211,7 @@ export function CertificationsEditor({ data, onUpdate }: CertificationsEditorPro
         <DndContext
           sensors={sensors}
           collisionDetection={closestCenter}
+          onDragStart={handleDragStart}
           onDragEnd={handleDragEnd}
         >
           <SortableContext
@@ -210,6 +230,18 @@ export function CertificationsEditor({ data, onUpdate }: CertificationsEditorPro
               ))}
             </div>
           </SortableContext>
+          
+          <DragOverlay dropAnimation={null}>
+            {activeCertId ? (
+              <SortableCertification
+                certification={data[parseInt(activeCertId.split("-")[1])]}
+                index={parseInt(activeCertId.split("-")[1])}
+                onUpdate={() => {}}
+                onRemove={() => {}}
+                isOverlay={true}
+              />
+            ) : null}
+          </DragOverlay>
         </DndContext>
       )}
     </div>

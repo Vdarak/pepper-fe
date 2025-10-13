@@ -9,6 +9,8 @@ import {
   DndContext,
   closestCenter,
   DragEndEvent,
+  DragStartEvent,
+  DragOverlay,
   PointerSensor,
   useSensor,
   useSensors,
@@ -30,38 +32,44 @@ interface SkillsEditorProps {
 function SortableSkillPill({
   skill,
   onRemove,
+  isOverlay = false,
 }: {
   skill: string;
   onRemove: () => void;
+  isOverlay?: boolean;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id: skill });
 
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.5 : 1,
-  };
+  const style = isOverlay
+    ? {}
+    : {
+        transform: CSS.Transform.toString(transform),
+        transition,
+        opacity: isDragging ? 0 : 1,
+      };
 
   return (
     <div
-      ref={setNodeRef}
+      ref={isOverlay ? undefined : setNodeRef}
       style={style}
       className="group inline-flex items-center gap-1 rounded-full bg-primary/10 px-3 py-1 text-sm"
-      {...attributes}
-      {...listeners}
+      {...(isOverlay ? {} : attributes)}
+      {...(isOverlay ? {} : listeners)}
     >
       <GripVertical className="h-3 w-3 cursor-grab text-muted-foreground" />
       <span>{skill}</span>
-      <button
-        onClick={(e) => {
-          e.stopPropagation();
-          onRemove();
-        }}
-        className="ml-1 rounded-full hover:bg-destructive/20"
-      >
-        <X className="h-3 w-3" />
-      </button>
+      {!isOverlay && (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onRemove();
+          }}
+          className="ml-1 rounded-full hover:bg-destructive/20"
+        >
+          <X className="h-3 w-3" />
+        </button>
+      )}
     </div>
   );
 }
@@ -80,6 +88,7 @@ function SortableCategory({
   const [isAddingSkill, setIsAddingSkill] = useState(false);
   const [newSkillName, setNewSkillName] = useState("");
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [activeSkillId, setActiveSkillId] = useState<string | null>(null);
   const { attributes, listeners, setNodeRef, transform, transition } =
     useSortable({ id: categoryId });
 
@@ -96,6 +105,10 @@ function SortableCategory({
     })
   );
 
+  const handleDragStart = (event: DragStartEvent) => {
+    setActiveSkillId(event.active.id as string);
+  };
+
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
 
@@ -105,6 +118,8 @@ function SortableCategory({
       const newSkills = arrayMove(category.skills, oldIndex, newIndex);
       onUpdate({ ...category, skills: newSkills });
     }
+    
+    setActiveSkillId(null);
   };
 
   const addSkill = () => {
@@ -170,6 +185,7 @@ function SortableCategory({
       <DndContext
         sensors={sensors}
         collisionDetection={closestCenter}
+        onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
       >
         <SortableContext
@@ -222,6 +238,16 @@ function SortableCategory({
             )}
           </div>
         </SortableContext>
+        
+        <DragOverlay dropAnimation={null}>
+          {activeSkillId ? (
+            <SortableSkillPill
+              skill={activeSkillId}
+              onRemove={() => {}}
+              isOverlay={true}
+            />
+          ) : null}
+        </DragOverlay>
       </DndContext>
     </div>
   );

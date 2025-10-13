@@ -5,6 +5,8 @@ import {
   DndContext,
   closestCenter,
   DragEndEvent,
+  DragStartEvent,
+  DragOverlay,
   PointerSensor,
   useSensor,
   useSensors,
@@ -17,6 +19,7 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { GripVertical } from "lucide-react";
+import { useState } from "react";
 
 interface ExperiencePreviewProps {
   title: string;
@@ -30,11 +33,13 @@ function SortableBullet({
   index,
   onUpdate,
   expId,
+  isOverlay = false,
 }: {
   bullet: string;
   index: number;
   onUpdate: (value: string) => void;
   expId: string;
+  isOverlay?: boolean;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id: `${expId}-exp-bullet-${index}` });
@@ -42,21 +47,23 @@ function SortableBullet({
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-    opacity: isDragging ? 0.5 : 1,
+    opacity: isDragging ? 0 : 1,
   };
 
   return (
     <li ref={setNodeRef} style={style} className="group flex">
-      <div
-        {...attributes}
-        {...listeners}
-        className="cursor-grab opacity-0 group-hover:opacity-100 -ml-4 mr-1"
-      >
-        <GripVertical className="h-3 w-3 text-muted-foreground" />
-      </div>
+      {!isOverlay && (
+        <div
+          {...attributes}
+          {...listeners}
+          className="cursor-grab opacity-0 group-hover:opacity-100 -ml-4 mr-1"
+        >
+          <GripVertical className="h-3 w-3 text-muted-foreground" />
+        </div>
+      )}
       <span className="mr-2">•</span>
       <span
-        contentEditable
+        contentEditable={!isOverlay}
         suppressContentEditableWarning
         onBlur={(e) => onUpdate(e.currentTarget.textContent || "")}
         className="flex-1 cursor-text outline-none hover:bg-accent/20 rounded px-1"
@@ -70,10 +77,13 @@ function SortableBullet({
 function ExperienceItem({
   experience,
   onUpdate,
+  isOverlay = false,
 }: {
   experience: Experience;
   onUpdate: (newExp: Experience) => void;
+  isOverlay?: boolean;
 }) {
+  const [activeBulletId, setActiveBulletId] = useState<string | null>(null);
   const expId = (experience.role + experience.company).replace(/\s+/g, "-");
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id: experience.role + experience.company });
@@ -81,7 +91,7 @@ function ExperienceItem({
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-    opacity: isDragging ? 0.5 : 1,
+    opacity: isDragging ? 0 : 1,
   };
 
   const sensors = useSensors(
@@ -92,8 +102,13 @@ function ExperienceItem({
     })
   );
 
+  const handleBulletDragStart = (event: DragStartEvent) => {
+    setActiveBulletId(event.active.id as string);
+  };
+
   const handleBulletDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
+    setActiveBulletId(null);
 
     if (over && active.id !== over.id) {
       const activeIndex = parseInt((active.id as string).split("-").pop() || "0");
@@ -110,18 +125,20 @@ function ExperienceItem({
   };
 
   return (
-    <div ref={setNodeRef} style={style} className="group mb-4 relative">
-      <div
-        {...attributes}
-        {...listeners}
-        className="absolute -left-6 top-1 cursor-grab opacity-0 group-hover:opacity-100"
-      >
-        <GripVertical className="h-4 w-4 text-muted-foreground" />
-      </div>
+    <div ref={!isOverlay ? setNodeRef : undefined} style={style} className="group mb-4 relative">
+      {!isOverlay && (
+        <div
+          {...attributes}
+          {...listeners}
+          className="absolute -left-6 top-1 cursor-grab opacity-0 group-hover:opacity-100"
+        >
+          <GripVertical className="h-4 w-4 text-muted-foreground" />
+        </div>
+      )}
       <div className="flex justify-between">
         <div className="font-semibold">
           <span
-            contentEditable
+            contentEditable={!isOverlay}
             suppressContentEditableWarning
             onBlur={(e) =>
               onUpdate({ ...experience, role: e.currentTarget.textContent || "" })
@@ -133,7 +150,7 @@ function ExperienceItem({
         </div>
         <div className="text-sm">
           <span
-            contentEditable
+            contentEditable={!isOverlay}
             suppressContentEditableWarning
             onBlur={(e) =>
               onUpdate({
@@ -147,7 +164,7 @@ function ExperienceItem({
           </span>
           {" - "}
           <span
-            contentEditable
+            contentEditable={!isOverlay}
             suppressContentEditableWarning
             onBlur={(e) =>
               onUpdate({
@@ -163,7 +180,7 @@ function ExperienceItem({
       </div>
       <div className="text-sm italic">
         <span
-          contentEditable
+          contentEditable={!isOverlay}
           suppressContentEditableWarning
           onBlur={(e) =>
             onUpdate({ ...experience, company: e.currentTarget.textContent || "" })
@@ -177,6 +194,7 @@ function ExperienceItem({
         <DndContext
           sensors={sensors}
           collisionDetection={closestCenter}
+          onDragStart={handleBulletDragStart}
           onDragEnd={handleBulletDragEnd}
         >
           <SortableContext
@@ -195,6 +213,17 @@ function ExperienceItem({
               ))}
             </ul>
           </SortableContext>
+          <DragOverlay dropAnimation={null}>
+            {activeBulletId ? (
+              <SortableBullet
+                bullet={experience.description[parseInt(activeBulletId.split("-").pop() || "0")]}
+                index={parseInt(activeBulletId.split("-").pop() || "0")}
+                onUpdate={() => {}}
+                expId={expId}
+                isOverlay={true}
+              />
+            ) : null}
+          </DragOverlay>
         </DndContext>
       )}
     </div>
@@ -202,6 +231,7 @@ function ExperienceItem({
 }
 
 export function ExperiencePreview({ title, data, onUpdate, hideTitle }: ExperiencePreviewProps) {
+  const [activeExpId, setActiveExpId] = useState<string | null>(null);
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
@@ -210,8 +240,13 @@ export function ExperiencePreview({ title, data, onUpdate, hideTitle }: Experien
     })
   );
 
+  const handleDragStart = (event: DragStartEvent) => {
+    setActiveExpId(event.active.id as string);
+  };
+
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
+    setActiveExpId(null);
 
     if (over && active.id !== over.id) {
       const oldIndex = data.findIndex((e) => e.role + e.company === active.id);
@@ -237,6 +272,7 @@ export function ExperiencePreview({ title, data, onUpdate, hideTitle }: Experien
       <DndContext
         sensors={sensors}
         collisionDetection={closestCenter}
+        onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
       >
         <SortableContext
@@ -253,6 +289,15 @@ export function ExperiencePreview({ title, data, onUpdate, hideTitle }: Experien
             ))}
           </div>
         </SortableContext>
+        <DragOverlay dropAnimation={null}>
+          {activeExpId ? (
+            <ExperienceItem
+              experience={data.find((e) => e.role + e.company === activeExpId)!}
+              onUpdate={() => {}}
+              isOverlay={true}
+            />
+          ) : null}
+        </DragOverlay>
       </DndContext>
     </div>
   );

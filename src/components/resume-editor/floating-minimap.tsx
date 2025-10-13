@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { DndContext, closestCenter, DragEndEvent } from "@dnd-kit/core";
+import { DndContext, closestCenter, DragEndEvent, DragStartEvent, DragOverlay } from "@dnd-kit/core";
 import {
   SortableContext,
   verticalListSortingStrategy,
@@ -17,23 +17,23 @@ interface FloatingMinimapProps {
   onReorder: (newOrder: string[]) => void;
 }
 
-function SortableSectionItem({ section }: { section: string }) {
+function SortableSectionItem({ section, isOverlay = false }: { section: string; isOverlay?: boolean }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id: section });
 
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-    opacity: isDragging ? 0.5 : 1,
+    opacity: isDragging ? 0 : 1,
   };
 
   return (
     <div
-      ref={setNodeRef}
+      ref={!isOverlay ? setNodeRef : undefined}
       style={style}
       className="flex items-center gap-2 rounded-md border bg-card px-3 py-2 text-sm hover:bg-accent cursor-grab active:cursor-grabbing"
-      {...attributes}
-      {...listeners}
+      {...(!isOverlay ? attributes : {})}
+      {...(!isOverlay ? listeners : {})}
     >
       <GripVertical className="h-4 w-4 text-muted-foreground flex-shrink-0" />
       <span className="capitalize">{section}</span>
@@ -43,9 +43,15 @@ function SortableSectionItem({ section }: { section: string }) {
 
 export function FloatingMinimap({ sections, onReorder }: FloatingMinimapProps) {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [activeSectionId, setActiveSectionId] = useState<string | null>(null);
+
+  const handleDragStart = (event: DragStartEvent) => {
+    setActiveSectionId(event.active.id as string);
+  };
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
+    setActiveSectionId(null);
 
     if (over && active.id !== over.id) {
       const oldIndex = sections.indexOf(active.id as string);
@@ -84,7 +90,7 @@ export function FloatingMinimap({ sections, onReorder }: FloatingMinimapProps) {
         </Button>
       </div>
       <div className="max-h-[60vh] overflow-y-auto p-4">
-        <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+        <DndContext collisionDetection={closestCenter} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
           <SortableContext items={sections} strategy={verticalListSortingStrategy}>
             <div className="space-y-2">
               {sections.map((section) => (
@@ -92,6 +98,11 @@ export function FloatingMinimap({ sections, onReorder }: FloatingMinimapProps) {
               ))}
             </div>
           </SortableContext>
+          <DragOverlay dropAnimation={null}>
+            {activeSectionId ? (
+              <SortableSectionItem section={activeSectionId} isOverlay={true} />
+            ) : null}
+          </DragOverlay>
         </DndContext>
       </div>
     </div>

@@ -267,7 +267,7 @@ export function PreviewPane({
           
           <DragOverlay dropAnimation={null}>
             {activeSectionId ? (
-              <div className="w-[850px] bg-background p-6 shadow-lg">
+              <div className="w-[850px] bg-background p-6 shadow-lg" style={{ opacity: 0.75 }}>
                 <SortableSectionPreview 
                   sectionName={activeSectionId}
                   onUpdateSectionTitle={onUpdateSectionTitle}

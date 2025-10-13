@@ -10,6 +10,8 @@ import {
   DndContext,
   closestCenter,
   DragEndEvent,
+  DragStartEvent,
+  DragOverlay,
   PointerSensor,
   useSensor,
   useSensors,
@@ -33,24 +35,28 @@ function SortableBullet({
   index,
   onUpdate,
   onRemove,
+  isOverlay = false,
 }: {
   bullet: string;
   index: number;
   onUpdate: (value: string) => void;
   onRemove: () => void;
+  isOverlay?: boolean;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id: `exp-bullet-${index}` });
 
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.5 : 1,
-  };
+  const style = isOverlay
+    ? {}
+    : {
+        transform: CSS.Transform.toString(transform),
+        transition,
+        opacity: isDragging ? 0 : 1,
+      };
 
   return (
-    <div ref={setNodeRef} style={style} className="flex gap-2">
-      <div {...attributes} {...listeners} className="cursor-grab pt-3">
+    <div ref={isOverlay ? undefined : setNodeRef} style={style} className="flex gap-2">
+      <div {...(isOverlay ? {} : attributes)} {...(isOverlay ? {} : listeners)} className="cursor-grab pt-3">
         <GripVertical className="h-4 w-4 text-muted-foreground" />
       </div>
       <Input
@@ -58,10 +64,13 @@ function SortableBullet({
         onChange={(e) => onUpdate(e.target.value)}
         placeholder="Bullet point..."
         className="flex-1"
+        disabled={isOverlay}
       />
-      <Button onClick={onRemove} size="icon" variant="ghost" className="mt-1">
-        <X className="h-4 w-4" />
-      </Button>
+      {!isOverlay && (
+        <Button onClick={onRemove} size="icon" variant="ghost" className="mt-1">
+          <X className="h-4 w-4" />
+        </Button>
+      )}
     </div>
   );
 }
@@ -78,6 +87,7 @@ function ExperienceItem({
   onRemove: () => void;
 }) {
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [activeBulletId, setActiveBulletId] = useState<string | null>(null);
   const { attributes, listeners, setNodeRef, transform, transition } =
     useSortable({ id: experienceId });
 
@@ -94,6 +104,10 @@ function ExperienceItem({
     })
   );
 
+  const handleBulletDragStart = (event: DragStartEvent) => {
+    setActiveBulletId(event.active.id as string);
+  };
+
   const handleBulletDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
 
@@ -103,6 +117,8 @@ function ExperienceItem({
       const newDescription = arrayMove(experience.description, activeIndex, overIndex);
       onUpdate({ ...experience, description: newDescription });
     }
+    
+    setActiveBulletId(null);
   };
 
   const addBullet = () => {
@@ -218,6 +234,7 @@ function ExperienceItem({
           <DndContext
             sensors={sensors}
             collisionDetection={closestCenter}
+            onDragStart={handleBulletDragStart}
             onDragEnd={handleBulletDragEnd}
           >
             <SortableContext
@@ -240,6 +257,18 @@ function ExperienceItem({
                 </Button>
               </div>
             </SortableContext>
+            
+            <DragOverlay dropAnimation={null}>
+              {activeBulletId ? (
+                <SortableBullet
+                  bullet={experience.description[parseInt(activeBulletId.split("-")[2])]}
+                  index={parseInt(activeBulletId.split("-")[2])}
+                  onUpdate={() => {}}
+                  onRemove={() => {}}
+                  isOverlay={true}
+                />
+              ) : null}
+            </DragOverlay>
           </DndContext>
         )}
       </div>

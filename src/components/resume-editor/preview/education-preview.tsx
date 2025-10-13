@@ -1,10 +1,13 @@
 "use client";
 
+import { useState } from "react";
 import { Education } from "@/types/resume";
 import {
   DndContext,
   closestCenter,
   DragEndEvent,
+  DragStartEvent,
+  DragOverlay,
   PointerSensor,
   useSensor,
   useSensors,
@@ -27,28 +30,34 @@ interface EducationPreviewProps {
 function EducationItem({
   education,
   onUpdate,
+  isOverlay = false,
 }: {
   education: Education;
   onUpdate: (newEdu: Education) => void;
+  isOverlay?: boolean;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id: education.university + education.major });
 
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.5 : 1,
-  };
+  const style = isOverlay
+    ? {}
+    : {
+        transform: CSS.Transform.toString(transform),
+        transition,
+        opacity: isDragging ? 0 : 1,
+      };
 
   return (
-    <div ref={setNodeRef} style={style} className="group mb-4 relative">
-      <div
-        {...attributes}
-        {...listeners}
-        className="absolute -left-6 top-1 cursor-grab opacity-0 group-hover:opacity-100"
-      >
-        <GripVertical className="h-4 w-4 text-muted-foreground" />
-      </div>
+    <div ref={isOverlay ? undefined : setNodeRef} style={style} className="group mb-4 relative">
+      {!isOverlay && (
+        <div
+          {...attributes}
+          {...listeners}
+          className="absolute -left-6 top-1 cursor-grab opacity-0 group-hover:opacity-100"
+        >
+          <GripVertical className="h-4 w-4 text-muted-foreground" />
+        </div>
+      )}
       <div className="flex justify-between">
         <div className="font-semibold">
           <span
@@ -150,6 +159,8 @@ function EducationItem({
 }
 
 export function EducationPreview({ data, onUpdate, hideTitle }: EducationPreviewProps) {
+  const [activeEduId, setActiveEduId] = useState<string | null>(null);
+  
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
@@ -157,6 +168,10 @@ export function EducationPreview({ data, onUpdate, hideTitle }: EducationPreview
       },
     })
   );
+
+  const handleDragStart = (event: DragStartEvent) => {
+    setActiveEduId(event.active.id as string);
+  };
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
@@ -167,6 +182,8 @@ export function EducationPreview({ data, onUpdate, hideTitle }: EducationPreview
       const newData = arrayMove(data, oldIndex, newIndex);
       onUpdate(newData);
     }
+    
+    setActiveEduId(null);
   };
 
   const updateEducation = (index: number, newEdu: Education) => {
@@ -185,6 +202,7 @@ export function EducationPreview({ data, onUpdate, hideTitle }: EducationPreview
       <DndContext
         sensors={sensors}
         collisionDetection={closestCenter}
+        onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
       >
         <SortableContext
@@ -201,6 +219,15 @@ export function EducationPreview({ data, onUpdate, hideTitle }: EducationPreview
             ))}
           </div>
         </SortableContext>
+        <DragOverlay dropAnimation={null}>
+          {activeEduId ? (
+            <EducationItem
+              education={data.find((e) => e.university + e.major === activeEduId)!}
+              onUpdate={() => {}}
+              isOverlay={true}
+            />
+          ) : null}
+        </DragOverlay>
       </DndContext>
     </div>
   );

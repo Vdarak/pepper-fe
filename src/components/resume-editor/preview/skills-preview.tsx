@@ -1,10 +1,13 @@
 "use client";
 
+import { useState } from "react";
 import { SkillsSection, SkillCategory } from "@/types/resume";
 import {
   DndContext,
   closestCenter,
   DragEndEvent,
+  DragStartEvent,
+  DragOverlay,
   PointerSensor,
   useSensor,
   useSensors,
@@ -25,23 +28,25 @@ interface SkillsPreviewProps {
   hideTitle?: boolean;
 }
 
-function SortableSkill({ skill }: { skill: string }) {
+function SortableSkill({ skill, isOverlay = false }: { skill: string; isOverlay?: boolean }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id: skill });
 
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.5 : 1,
-  };
+  const style = isOverlay
+    ? {}
+    : {
+        transform: CSS.Transform.toString(transform),
+        transition,
+        opacity: isDragging ? 0 : 1,
+      };
 
   return (
     <span
-      ref={setNodeRef}
+      ref={isOverlay ? undefined : setNodeRef}
       style={style}
       className="group inline-flex items-center cursor-grab hover:bg-accent/30 rounded px-1"
-      {...attributes}
-      {...listeners}
+      {...(isOverlay ? {} : attributes)}
+      {...(isOverlay ? {} : listeners)}
     >
       <GripVertical className="h-3 w-3 opacity-0 group-hover:opacity-100 -ml-1 mr-0.5" />
       {skill}
@@ -58,6 +63,7 @@ function CategoryPreview({
   categoryId: string;
   onUpdate: (newCategory: SkillCategory) => void;
 }) {
+  const [activeSkillId, setActiveSkillId] = useState<string | null>(null);
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id: categoryId });
 
@@ -75,6 +81,10 @@ function CategoryPreview({
     })
   );
 
+  const handleDragStart = (event: DragStartEvent) => {
+    setActiveSkillId(event.active.id as string);
+  };
+
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
 
@@ -84,6 +94,8 @@ function CategoryPreview({
       const newSkills = arrayMove(category.skills, oldIndex, newIndex);
       onUpdate({ ...category, skills: newSkills });
     }
+    
+    setActiveSkillId(null);
   };
 
   return (
@@ -110,6 +122,7 @@ function CategoryPreview({
       <DndContext
         sensors={sensors}
         collisionDetection={closestCenter}
+        onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
       >
         <SortableContext
@@ -125,6 +138,12 @@ function CategoryPreview({
             ))}
           </span>
         </SortableContext>
+        
+        <DragOverlay dropAnimation={null}>
+          {activeSkillId ? (
+            <SortableSkill skill={activeSkillId} isOverlay={true} />
+          ) : null}
+        </DragOverlay>
       </DndContext>
     </div>
   );

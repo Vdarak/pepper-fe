@@ -5,6 +5,8 @@ import {
   DndContext,
   closestCenter,
   DragEndEvent,
+  DragStartEvent,
+  DragOverlay,
   PointerSensor,
   useSensor,
   useSensors,
@@ -17,6 +19,7 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { GripVertical } from "lucide-react";
+import { useState } from "react";
 
 interface ProjectsPreviewProps {
   data: Project[];
@@ -29,11 +32,13 @@ function SortableBullet({
   index,
   onUpdate,
   projectId,
+  isOverlay = false,
 }: {
   bullet: string;
   index: number;
   onUpdate: (value: string) => void;
   projectId: string;
+  isOverlay?: boolean;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id: `${projectId}-bullet-${index}` });
@@ -41,21 +46,23 @@ function SortableBullet({
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-    opacity: isDragging ? 0.5 : 1,
+    opacity: isDragging ? 0 : 1,
   };
 
   return (
     <li ref={setNodeRef} style={style} className="group flex">
-      <div
-        {...attributes}
-        {...listeners}
-        className="cursor-grab opacity-0 group-hover:opacity-100 -ml-4 mr-1"
-      >
-        <GripVertical className="h-3 w-3 text-muted-foreground" />
-      </div>
+      {!isOverlay && (
+        <div
+          {...attributes}
+          {...listeners}
+          className="cursor-grab opacity-0 group-hover:opacity-100 -ml-4 mr-1"
+        >
+          <GripVertical className="h-3 w-3 text-muted-foreground" />
+        </div>
+      )}
       <span className="mr-2">•</span>
       <span
-        contentEditable
+        contentEditable={!isOverlay}
         suppressContentEditableWarning
         onBlur={(e) => onUpdate(e.currentTarget.textContent || "")}
         className="flex-1 cursor-text outline-none hover:bg-accent/20 rounded px-1"
@@ -69,10 +76,13 @@ function SortableBullet({
 function ProjectItem({
   project,
   onUpdate,
+  isOverlay = false,
 }: {
   project: Project;
   onUpdate: (newProject: Project) => void;
+  isOverlay?: boolean;
 }) {
+  const [activeBulletId, setActiveBulletId] = useState<string | null>(null);
   const projectId = project.title.replace(/\s+/g, "-");
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id: project.title });
@@ -80,7 +90,7 @@ function ProjectItem({
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-    opacity: isDragging ? 0.5 : 1,
+    opacity: isDragging ? 0 : 1,
   };
 
   const sensors = useSensors(
@@ -91,8 +101,13 @@ function ProjectItem({
     })
   );
 
+  const handleBulletDragStart = (event: DragStartEvent) => {
+    setActiveBulletId(event.active.id as string);
+  };
+
   const handleBulletDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
+    setActiveBulletId(null);
 
     if (over && active.id !== over.id) {
       const activeIndex = parseInt((active.id as string).split("-").pop() || "0");
@@ -109,18 +124,20 @@ function ProjectItem({
   };
 
   return (
-    <div ref={setNodeRef} style={style} className="group mb-4 relative">
-      <div
-        {...attributes}
-        {...listeners}
-        className="absolute -left-6 top-1 cursor-grab opacity-0 group-hover:opacity-100"
-      >
-        <GripVertical className="h-4 w-4 text-muted-foreground" />
-      </div>
+    <div ref={!isOverlay ? setNodeRef : undefined} style={style} className="group mb-4 relative">
+      {!isOverlay && (
+        <div
+          {...attributes}
+          {...listeners}
+          className="absolute -left-6 top-1 cursor-grab opacity-0 group-hover:opacity-100"
+        >
+          <GripVertical className="h-4 w-4 text-muted-foreground" />
+        </div>
+      )}
       <div className="flex justify-between">
         <div className="font-semibold">
           <span
-            contentEditable
+            contentEditable={!isOverlay}
             suppressContentEditableWarning
             onBlur={(e) =>
               onUpdate({ ...project, title: e.currentTarget.textContent || "" })
@@ -132,7 +149,7 @@ function ProjectItem({
         </div>
         <div className="text-sm">
           <span
-            contentEditable
+            contentEditable={!isOverlay}
             suppressContentEditableWarning
             onBlur={(e) =>
               onUpdate({
@@ -146,7 +163,7 @@ function ProjectItem({
           </span>
           {" - "}
           <span
-            contentEditable
+            contentEditable={!isOverlay}
             suppressContentEditableWarning
             onBlur={(e) =>
               onUpdate({
@@ -162,7 +179,7 @@ function ProjectItem({
       </div>
       <div className="text-sm italic">
         <span
-          contentEditable
+          contentEditable={!isOverlay}
           suppressContentEditableWarning
           onBlur={(e) =>
             onUpdate({ ...project, entity: e.currentTarget.textContent || "" })
@@ -176,6 +193,7 @@ function ProjectItem({
         <DndContext
           sensors={sensors}
           collisionDetection={closestCenter}
+          onDragStart={handleBulletDragStart}
           onDragEnd={handleBulletDragEnd}
         >
           <SortableContext
@@ -194,6 +212,17 @@ function ProjectItem({
               ))}
             </ul>
           </SortableContext>
+          <DragOverlay dropAnimation={null}>
+            {activeBulletId ? (
+              <SortableBullet
+                bullet={project.description[parseInt(activeBulletId.split("-").pop() || "0")]}
+                index={parseInt(activeBulletId.split("-").pop() || "0")}
+                onUpdate={() => {}}
+                projectId={projectId}
+                isOverlay={true}
+              />
+            ) : null}
+          </DragOverlay>
         </DndContext>
       )}
     </div>
@@ -201,6 +230,7 @@ function ProjectItem({
 }
 
 export function ProjectsPreview({ data, onUpdate, hideTitle }: ProjectsPreviewProps) {
+  const [activeProjectId, setActiveProjectId] = useState<string | null>(null);
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
@@ -209,8 +239,13 @@ export function ProjectsPreview({ data, onUpdate, hideTitle }: ProjectsPreviewPr
     })
   );
 
+  const handleDragStart = (event: DragStartEvent) => {
+    setActiveProjectId(event.active.id as string);
+  };
+
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
+    setActiveProjectId(null);
 
     if (over && active.id !== over.id) {
       const oldIndex = data.findIndex((p) => p.title === active.id);
@@ -236,6 +271,7 @@ export function ProjectsPreview({ data, onUpdate, hideTitle }: ProjectsPreviewPr
       <DndContext
         sensors={sensors}
         collisionDetection={closestCenter}
+        onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
       >
         <SortableContext
@@ -252,6 +288,15 @@ export function ProjectsPreview({ data, onUpdate, hideTitle }: ProjectsPreviewPr
             ))}
           </div>
         </SortableContext>
+        <DragOverlay dropAnimation={null}>
+          {activeProjectId ? (
+            <ProjectItem
+              project={data.find((p) => p.title === activeProjectId)!}
+              onUpdate={() => {}}
+              isOverlay={true}
+            />
+          ) : null}
+        </DragOverlay>
       </DndContext>
     </div>
   );

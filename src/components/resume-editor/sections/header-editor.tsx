@@ -21,8 +21,8 @@ export function HeaderEditor({ header, onUpdate }: HeaderEditorProps) {
   const addLink = () => {
     const newIndex = header.links.length + 1;
     const newLinks = [
-      ...header.links,
       { index: newIndex, type: "", url: "", label: "" },
+      ...header.links,
     ];
     onUpdate("links", newLinks);
   };

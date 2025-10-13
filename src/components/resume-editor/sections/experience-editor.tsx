@@ -309,13 +309,13 @@ export function ExperienceEditor({ data, onUpdate }: ExperienceEditorProps) {
 
   const addExperience = () => {
     onUpdate([
-      ...data,
       {
         role: "",
         company: "",
         duration: { start: "", end: "", IsCurrent: false },
         description: [],
       },
+      ...data,
     ]);
   };
 

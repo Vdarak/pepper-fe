@@ -287,8 +287,8 @@ export function SkillsEditor({ data, onUpdate }: SkillsEditorProps) {
   const addCategory = () => {
     onUpdate({
       categories: [
-        ...data.categories,
         { name: "New Category", skills: [] },
+        ...data.categories,
       ],
     });
   };

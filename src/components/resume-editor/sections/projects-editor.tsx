@@ -310,13 +310,13 @@ export function ProjectsEditor({ data, onUpdate }: ProjectsEditorProps) {
 
   const addProject = () => {
     onUpdate([
-      ...data,
       {
         title: "",
         entity: "",
         duration: { start: "", end: "", IsCurrent: false },
         description: [],
       },
+      ...data,
     ]);
   };
 

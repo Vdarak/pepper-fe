@@ -413,7 +413,6 @@ export function EducationEditor({ data, onUpdate }: EducationEditorProps) {
 
   const addEducation = () => {
     onUpdate([
-      ...data,
       {
         university: "",
         major: "",
@@ -422,6 +421,7 @@ export function EducationEditor({ data, onUpdate }: EducationEditorProps) {
         coursework: [],
         description: [],
       },
+      ...data,
     ]);
   };
 

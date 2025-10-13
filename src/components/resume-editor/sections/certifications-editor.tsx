@@ -181,13 +181,13 @@ export function CertificationsEditor({ data, onUpdate }: CertificationsEditorPro
 
   const addCertification = () => {
     onUpdate([
-      ...data,
       {
         title: "",
         entity: "",
         duration: { start: "", end: "", IsCurrent: false },
         description: [],
       },
+      ...data,
     ]);
   };
 

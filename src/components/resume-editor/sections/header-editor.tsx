@@ -4,7 +4,7 @@ import { Header, Link } from "@/types/resume";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Plus, X, Link as LinkIcon } from "lucide-react";
+import { Plus, X } from "lucide-react";
 
 interface HeaderEditorProps {
   header: Header;
@@ -12,23 +12,26 @@ interface HeaderEditorProps {
 }
 
 export function HeaderEditor({ header, onUpdate }: HeaderEditorProps) {
-  const updateLink = (index: number, field: keyof Link, value: string) => {
+  const updateLink = (index: number, field: keyof Link, value: string | number) => {
     const newLinks = [...header.links];
     newLinks[index] = { ...newLinks[index], [field]: value };
     onUpdate("links", newLinks);
   };
 
   const addLink = () => {
+    const newIndex = header.links.length + 1;
     const newLinks = [
       ...header.links,
-      { type: "", url: "", label: "" },
+      { index: newIndex, type: "", url: "", label: "" },
     ];
     onUpdate("links", newLinks);
   };
 
   const removeLink = (index: number) => {
     const newLinks = header.links.filter((_, i) => i !== index);
-    onUpdate("links", newLinks);
+    // Reindex remaining links
+    const reindexedLinks = newLinks.map((link, i) => ({ ...link, index: i + 1 }));
+    onUpdate("links", reindexedLinks);
   };
 
   return (
@@ -74,18 +77,25 @@ export function HeaderEditor({ header, onUpdate }: HeaderEditorProps) {
         </div>
 
         <div>
-          <div className="mb-2 flex items-center justify-between">
-            <Label>Links</Label>
-            <Button onClick={addLink} size="sm" variant="outline">
-              <Plus className="mr-1 h-4 w-4" />
-              Add Link
-            </Button>
-          </div>
-          <div className="space-y-3">
+          <Label className="mb-2 block">Links</Label>
+          <Button onClick={addLink} size="sm" variant="outline" className="mb-3">
+            <Plus className="mr-1 h-4 w-4" />
+            Add Link
+          </Button>
+          <div className="space-y-4">
             {header.links.map((link, index) => (
-              <div key={index} className="flex gap-2">
-                <LinkIcon className="mt-2 h-4 w-4 text-muted-foreground" />
-                <div className="flex-1 space-y-2">
+              <div key={index} className="rounded-lg border p-3">
+                <div className="flex items-center justify-between mb-3">
+                  <Label className="text-sm font-semibold">Link {link.index || index + 1}</Label>
+                  <Button
+                    onClick={() => removeLink(index)}
+                    size="sm"
+                    variant="ghost"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+                <div className="space-y-2">
                   <Input
                     placeholder="Label (e.g., LinkedIn)"
                     value={link.label}
@@ -97,14 +107,6 @@ export function HeaderEditor({ header, onUpdate }: HeaderEditorProps) {
                     onChange={(e) => updateLink(index, "url", e.target.value)}
                   />
                 </div>
-                <Button
-                  onClick={() => removeLink(index)}
-                  size="icon"
-                  variant="ghost"
-                  className="mt-2"
-                >
-                  <X className="h-4 w-4" />
-                </Button>
               </div>
             ))}
           </div>

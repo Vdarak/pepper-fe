@@ -21,6 +21,7 @@ import { GripVertical } from "lucide-react";
 interface ProjectsPreviewProps {
   data: Project[];
   onUpdate: (newData: Project[]) => void;
+  hideTitle?: boolean;
 }
 
 function SortableBullet({
@@ -199,7 +200,7 @@ function ProjectItem({
   );
 }
 
-export function ProjectsPreview({ data, onUpdate }: ProjectsPreviewProps) {
+export function ProjectsPreview({ data, onUpdate, hideTitle }: ProjectsPreviewProps) {
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
@@ -227,9 +228,11 @@ export function ProjectsPreview({ data, onUpdate }: ProjectsPreviewProps) {
 
   return (
     <div>
-      <h2 className="text-xl font-bold uppercase mb-3 border-b border-foreground/20 pb-1">
-        Projects
-      </h2>
+      {!hideTitle && (
+        <h2 className="text-xl font-bold uppercase mb-3 border-b border-foreground/20 pb-1">
+          Projects
+        </h2>
+      )}
       <DndContext
         sensors={sensors}
         collisionDetection={closestCenter}

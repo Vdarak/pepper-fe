@@ -20,6 +20,7 @@ import { GripVertical } from "lucide-react";
 interface CertificationsPreviewProps {
   data: string[];
   onUpdate: (newData: string[]) => void;
+  hideTitle?: boolean;
 }
 
 function SortableCertification({
@@ -62,7 +63,7 @@ function SortableCertification({
   );
 }
 
-export function CertificationsPreview({ data, onUpdate }: CertificationsPreviewProps) {
+export function CertificationsPreview({ data, onUpdate, hideTitle }: CertificationsPreviewProps) {
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
@@ -90,9 +91,11 @@ export function CertificationsPreview({ data, onUpdate }: CertificationsPreviewP
 
   return (
     <div>
-      <h2 className="text-xl font-bold uppercase mb-3 border-b border-foreground/20 pb-1">
-        Certifications and Achievements
-      </h2>
+      {!hideTitle && (
+        <h2 className="text-xl font-bold uppercase mb-3 border-b border-foreground/20 pb-1">
+          Certifications and Achievements
+        </h2>
+      )}
       <DndContext
         sensors={sensors}
         collisionDetection={closestCenter}

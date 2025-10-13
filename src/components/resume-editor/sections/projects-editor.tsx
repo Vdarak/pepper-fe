@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Plus, X, GripVertical, ArrowRight, Trash2 } from "lucide-react";
+import { useState } from "react";
 import {
   DndContext,
   closestCenter,
@@ -75,6 +76,7 @@ function ProjectItem({
   onUpdate: (newProject: Project) => void;
   onRemove: () => void;
 }) {
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const { attributes, listeners, setNodeRef, transform, transition } =
     useSortable({ id: projectId });
 
@@ -129,7 +131,7 @@ function ProjectItem({
           <div {...attributes} {...listeners} className="cursor-grab pt-2">
             <GripVertical className="h-5 w-5 text-muted-foreground" />
           </div>
-          <div className="flex-1 space-y-3">
+          <div className="flex-1 space-y-3 max-w-md">
             <Input
               value={project.title}
               onChange={(e) => onUpdate({ ...project, title: e.target.value })}
@@ -145,9 +147,33 @@ function ProjectItem({
             />
           </div>
         </div>
-        <Button onClick={onRemove} size="icon" variant="ghost">
-          <Trash2 className="h-4 w-4" />
-        </Button>
+        <div>
+          {confirmDelete ? (
+            <div className="flex flex-col gap-2">
+              <Button
+                onClick={() => {
+                  onRemove();
+                  setConfirmDelete(false);
+                }}
+                size="sm"
+                variant="destructive"
+              >
+                Confirm
+              </Button>
+              <Button
+                onClick={() => setConfirmDelete(false)}
+                size="sm"
+                variant="outline"
+              >
+                Cancel
+              </Button>
+            </div>
+          ) : (
+            <Button onClick={() => setConfirmDelete(true)} size="icon" variant="ghost">
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          )}
+        </div>
       </div>
 
       <div className="grid grid-cols-3 gap-3">

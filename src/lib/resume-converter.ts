@@ -48,7 +48,8 @@ export function convertApiToResumeData(apiData: ResumeInfoResponse): ResumeData 
           email: sectionData.email || "",
           phone: sectionData.phone || "",
           location: sectionData.location || "",
-          links: (sectionData.links || []).map((link: any) => ({
+          links: (sectionData.links || []).map((link: any, index: number) => ({
+            index: link.index || index + 1,
             type: link.type || link.label || "",
             url: link.url || "",
             label: link.label || link.type || ""
@@ -191,6 +192,7 @@ export function convertResumeDataToApi(
     phone: resumeData.header.phone,
     location: resumeData.header.location,
     links: resumeData.header.links.map(link => ({
+      index: link.index,
       type: link.type,
       url: link.url,
       label: link.label

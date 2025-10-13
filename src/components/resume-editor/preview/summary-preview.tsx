@@ -5,14 +5,17 @@ import { Summary } from "@/types/resume";
 interface SummaryPreviewProps {
   data: Summary;
   onUpdate: (newData: Summary) => void;
+  hideTitle?: boolean;
 }
 
-export function SummaryPreview({ data, onUpdate }: SummaryPreviewProps) {
+export function SummaryPreview({ data, onUpdate, hideTitle }: SummaryPreviewProps) {
   return (
     <div>
-      <h2 className="text-xl font-bold uppercase mb-3 border-b border-foreground/20 pb-1">
-        Summary
-      </h2>
+      {!hideTitle && (
+        <h2 className="text-xl font-bold uppercase mb-3 border-b border-foreground/20 pb-1">
+          Summary
+        </h2>
+      )}
       <p
         contentEditable
         suppressContentEditableWarning

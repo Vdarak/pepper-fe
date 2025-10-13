@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { ResumeData } from "@/types/resume";
 import { HeaderEditor } from "./sections/header-editor";
 import { SkillsEditor } from "./sections/skills-editor";
@@ -13,6 +13,8 @@ import {
   DndContext,
   closestCenter,
   DragEndEvent,
+  DragStartEvent,
+  DragOverlay,
   PointerSensor,
   useSensor,
   useSensors,
@@ -24,47 +26,116 @@ import {
   arrayMove,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { ChevronDown, ChevronUp, GripVertical } from "lucide-react";
+import { ChevronDown, ChevronUp, GripVertical, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 interface EditorPaneProps {
   resumeData: ResumeData;
   onUpdateHeader: (field: string, value: any) => void;
   onUpdateSection: (sectionName: string, newData: any) => void;
   onReorderSections: (newOrder: string[]) => void;
+  onUpdateSectionTitle?: (oldTitle: string, newTitle: string) => void;
   isMobile?: boolean;
 }
 
 function SortableSectionWrapper({
   sectionName,
   children,
+  onUpdateSectionTitle,
+  isOverlay = false,
 }: {
   sectionName: string;
   children: React.ReactNode;
+  onUpdateSectionTitle?: (oldTitle: string, newTitle: string) => void;
+  isOverlay?: boolean;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id: sectionName });
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isEditingTitle, setIsEditingTitle] = useState(false);
+  const [editedTitle, setEditedTitle] = useState(sectionName);
+  const [isHoveringTitle, setIsHoveringTitle] = useState(false);
+  const nodeRef = useRef<HTMLDivElement>(null);
 
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.5 : 1,
+  const style = isOverlay
+    ? {}
+    : {
+        transform: CSS.Transform.toString(transform),
+        transition,
+        opacity: isDragging ? 0 : 1,
+      };
+
+  const handleRef = (node: HTMLDivElement | null) => {
+    nodeRef.current = node;
+    if (!isOverlay) {
+      setNodeRef(node);
+    }
+  };
+
+  const handleSaveSectionTitle = () => {
+    if (editedTitle.trim() && editedTitle !== sectionName && onUpdateSectionTitle) {
+      onUpdateSectionTitle(sectionName, editedTitle.trim());
+    }
+    setIsEditingTitle(false);
+  };
+
+  const handleCancelEdit = () => {
+    setEditedTitle(sectionName);
+    setIsEditingTitle(false);
   };
 
   return (
-    <div ref={setNodeRef} style={style} className="relative">
-      <div className="absolute -left-6 top-4 flex items-center gap-1">
-        <div {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing">
-          <GripVertical className="h-5 w-5 text-muted-foreground" />
+    <div ref={handleRef} style={style} className="relative">
+      {!isOverlay && (
+        <div className="absolute -left-6 top-4 flex items-center gap-1">
+          <div {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing">
+            <GripVertical className="h-5 w-5 text-muted-foreground" />
+          </div>
         </div>
-      </div>
+      )}
       <div className="border rounded-lg overflow-hidden">
         <button
           onClick={() => setIsCollapsed(!isCollapsed)}
           className="w-full flex items-center justify-between px-4 py-3 bg-muted/30 hover:bg-muted/50 transition-colors"
+          disabled={isOverlay}
         >
-          <h3 className="text-base font-semibold capitalize">{sectionName}</h3>
+          <div 
+            className="flex items-center gap-2 group/title"
+            onMouseEnter={() => setIsHoveringTitle(true)}
+            onMouseLeave={() => setIsHoveringTitle(false)}
+          >
+            {isEditingTitle ? (
+              <Input
+                value={editedTitle}
+                onChange={(e) => setEditedTitle(e.target.value)}
+                onBlur={handleSaveSectionTitle}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") handleSaveSectionTitle();
+                  if (e.key === "Escape") handleCancelEdit();
+                  e.stopPropagation();
+                }}
+                onClick={(e) => e.stopPropagation()}
+                className="h-7 w-auto min-w-[150px] text-base font-semibold"
+                autoFocus
+              />
+            ) : (
+              <>
+                <h3 className="text-base font-semibold capitalize">{sectionName}</h3>
+                {isHoveringTitle && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setIsEditingTitle(true);
+                    }}
+                    className="opacity-0 group-hover/title:opacity-100 transition-opacity p-1 -m-1 rounded hover:bg-accent"
+                  >
+                    <Pencil className="h-3.5 w-3.5 text-muted-foreground hover:text-foreground" />
+                  </button>
+                )}
+              </>
+            )}
+          </div>
           <Button variant="ghost" size="icon" className="h-8 w-8">
             {isCollapsed ? (
               <ChevronDown className="h-4 w-4" />
@@ -84,8 +155,11 @@ export function EditorPane({
   onUpdateHeader,
   onUpdateSection,
   onReorderSections,
+  onUpdateSectionTitle,
   isMobile,
 }: EditorPaneProps) {
+  const [activeSectionId, setActiveSectionId] = useState<string | null>(null);
+  
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
@@ -93,6 +167,10 @@ export function EditorPane({
       },
     })
   );
+
+  const handleDragStart = (event: DragStartEvent) => {
+    setActiveSectionId(event.active.id as string);
+  };
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
@@ -103,10 +181,71 @@ export function EditorPane({
       const newOrder = arrayMove(resumeData.section_idx, oldIndex, newIndex);
       onReorderSections(newOrder);
     }
+    
+    setActiveSectionId(null);
+  };
+
+  const renderSectionContent = (sectionName: string) => {
+    const sectionData = resumeData.data.find((s) => s.section === sectionName);
+    if (!sectionData) return null;
+
+    if (sectionName === "skills" && sectionData.section === "skills") {
+      return (
+        <SkillsEditor
+          data={sectionData.item}
+          onUpdate={(newData: any) => onUpdateSection(sectionName, newData)}
+        />
+      );
+    }
+    if (sectionName === "education" && sectionData.section === "education") {
+      return (
+        <EducationEditor
+          data={sectionData.item}
+          onUpdate={(newData: any) => onUpdateSection(sectionName, newData)}
+        />
+      );
+    }
+    if (sectionName === "projects" && sectionData.section === "projects") {
+      return (
+        <ProjectsEditor
+          data={sectionData.item}
+          onUpdate={(newData: any) => onUpdateSection(sectionName, newData)}
+        />
+      );
+    }
+    if (
+      (sectionName === "research experience" || sectionName === "professional experience") &&
+      (sectionData.section === "research experience" || sectionData.section === "professional experience")
+    ) {
+      return (
+        <ExperienceEditor
+          title={sectionName}
+          data={sectionData.item}
+          onUpdate={(newData: any) => onUpdateSection(sectionName, newData)}
+        />
+      );
+    }
+    if (sectionName === "certifications and achievements" && sectionData.section === "certifications and achievements") {
+      return (
+        <CertificationsEditor
+          data={sectionData.item}
+          onUpdate={(newData: any) => onUpdateSection(sectionName, newData)}
+        />
+      );
+    }
+    if (sectionName === "summary" && sectionData.section === "summary") {
+      return (
+        <SummaryEditor
+          data={sectionData.item}
+          onUpdate={(newData: any) => onUpdateSection(sectionName, newData)}
+        />
+      );
+    }
+    return null;
   };
 
   return (
-    <div className={`${isMobile ? "w-full" : "w-1/2"} overflow-y-auto border-r`}>
+    <div className={`${isMobile ? "w-screen" : "w-[50vw]"} overflow-y-auto border-r`}>
       <div className="space-y-6 p-6 pl-12">
         {/* Header Section - Not draggable, always at top */}
         <div className="border rounded-lg">
@@ -122,63 +261,37 @@ export function EditorPane({
         <DndContext
           sensors={sensors}
           collisionDetection={closestCenter}
+          onDragStart={handleDragStart}
           onDragEnd={handleDragEnd}
         >
           <SortableContext
             items={resumeData.section_idx}
             strategy={verticalListSortingStrategy}
           >
-            {resumeData.section_idx.map((sectionName) => {
-              const sectionData = resumeData.data.find((s) => s.section === sectionName);
-              if (!sectionData) return null;
-
-              return (
-                <SortableSectionWrapper key={sectionName} sectionName={sectionName}>
-                  {sectionName === "skills" && sectionData.section === "skills" && (
-                    <SkillsEditor
-                      data={sectionData.item}
-                      onUpdate={(newData: any) => onUpdateSection(sectionName, newData)}
-                    />
-                  )}
-                  {sectionName === "education" && sectionData.section === "education" && (
-                    <EducationEditor
-                      data={sectionData.item}
-                      onUpdate={(newData: any) => onUpdateSection(sectionName, newData)}
-                    />
-                  )}
-                  {sectionName === "projects" && sectionData.section === "projects" && (
-                    <ProjectsEditor
-                      data={sectionData.item}
-                      onUpdate={(newData: any) => onUpdateSection(sectionName, newData)}
-                    />
-                  )}
-                  {(sectionName === "research experience" ||
-                    sectionName === "professional experience") && 
-                    (sectionData.section === "research experience" ||
-                    sectionData.section === "professional experience") && (
-                    <ExperienceEditor
-                      title={sectionName}
-                      data={sectionData.item}
-                      onUpdate={(newData: any) => onUpdateSection(sectionName, newData)}
-                    />
-                  )}
-                  {sectionName === "certifications and achievements" && 
-                    sectionData.section === "certifications and achievements" && (
-                    <CertificationsEditor
-                      data={sectionData.item}
-                      onUpdate={(newData: any) => onUpdateSection(sectionName, newData)}
-                    />
-                  )}
-                  {sectionName === "summary" && sectionData.section === "summary" && (
-                    <SummaryEditor
-                      data={sectionData.item}
-                      onUpdate={(newData: any) => onUpdateSection(sectionName, newData)}
-                    />
-                  )}
-                </SortableSectionWrapper>
-              );
-            })}
+            {resumeData.section_idx.map((sectionName) => (
+              <SortableSectionWrapper 
+                key={sectionName} 
+                sectionName={sectionName}
+                onUpdateSectionTitle={onUpdateSectionTitle}
+              >
+                {renderSectionContent(sectionName)}
+              </SortableSectionWrapper>
+            ))}
           </SortableContext>
+          
+          <DragOverlay dropAnimation={null}>
+            {activeSectionId ? (
+              <div className="w-[calc(50vw-3rem)]">
+                <SortableSectionWrapper 
+                  sectionName={activeSectionId}
+                  onUpdateSectionTitle={onUpdateSectionTitle}
+                  isOverlay={true}
+                >
+                  {renderSectionContent(activeSectionId)}
+                </SortableSectionWrapper>
+              </div>
+            ) : null}
+          </DragOverlay>
         </DndContext>
       </div>
     </div>

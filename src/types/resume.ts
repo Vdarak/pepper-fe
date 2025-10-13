@@ -4,6 +4,7 @@
  */
 
 export interface Link {
+  index: number;
   type: string;
   url: string;
   label: string;

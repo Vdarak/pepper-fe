@@ -22,6 +22,7 @@ import { GripVertical } from "lucide-react";
 interface SkillsPreviewProps {
   data: SkillsSection;
   onUpdate: (newData: SkillsSection) => void;
+  hideTitle?: boolean;
 }
 
 function SortableSkill({ skill }: { skill: string }) {
@@ -129,7 +130,7 @@ function CategoryPreview({
   );
 }
 
-export function SkillsPreview({ data, onUpdate }: SkillsPreviewProps) {
+export function SkillsPreview({ data, onUpdate, hideTitle }: SkillsPreviewProps) {
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
@@ -157,9 +158,11 @@ export function SkillsPreview({ data, onUpdate }: SkillsPreviewProps) {
 
   return (
     <div>
-      <h2 className="text-xl font-bold uppercase mb-3 border-b border-foreground/20 pb-1">
-        Skills
-      </h2>
+      {!hideTitle && (
+        <h2 className="text-xl font-bold uppercase mb-3 border-b border-foreground/20 pb-1">
+          Skills
+        </h2>
+      )}
       <DndContext
         sensors={sensors}
         collisionDetection={closestCenter}

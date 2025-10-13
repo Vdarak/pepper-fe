@@ -22,6 +22,7 @@ interface ExperiencePreviewProps {
   title: string;
   data: Experience[];
   onUpdate: (newData: Experience[]) => void;
+  hideTitle?: boolean;
 }
 
 function SortableBullet({
@@ -200,7 +201,7 @@ function ExperienceItem({
   );
 }
 
-export function ExperiencePreview({ title, data, onUpdate }: ExperiencePreviewProps) {
+export function ExperiencePreview({ title, data, onUpdate, hideTitle }: ExperiencePreviewProps) {
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
@@ -228,9 +229,11 @@ export function ExperiencePreview({ title, data, onUpdate }: ExperiencePreviewPr
 
   return (
     <div>
-      <h2 className="text-xl font-bold uppercase mb-3 border-b border-foreground/20 pb-1">
-        {title}
-      </h2>
+      {!hideTitle && (
+        <h2 className="text-xl font-bold uppercase mb-3 border-b border-foreground/20 pb-1">
+          {title}
+        </h2>
+      )}
       <DndContext
         sensors={sensors}
         collisionDetection={closestCenter}

@@ -70,7 +70,7 @@ export default function BottomNav() {
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
-      <div className="bg-card border border-border rounded-full shadow-lg px-3 py-2.5 flex items-center gap-1 transition-all duration-500 ease-out">
+      <div className="bg-card border border-border rounded-xl shadow-lg px-3 py-2.5 flex items-center gap-1 transition-all duration-500 ease-out">
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = pathname === item.path;
@@ -80,7 +80,7 @@ export default function BottomNav() {
               key={item.path}
               href={item.path}
               className={`
-                flex items-center justify-center gap-2 px-3 py-2 rounded-full
+                flex items-center justify-center gap-2 px-3 py-2 rounded-lg
                 transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)]
                 ${isActive ? "bg-primary text-primary-foreground" : "hover:bg-accent text-foreground"}
                 ${expanded ? "min-w-[100px]" : "min-w-[40px]"}

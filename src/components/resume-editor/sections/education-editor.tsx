@@ -80,6 +80,7 @@ function EducationItem({
 }) {
   const [isAddingCoursework, setIsAddingCoursework] = useState(false);
   const [newCoursework, setNewCoursework] = useState("");
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const { attributes, listeners, setNodeRef, transform, transition } =
     useSortable({ id: educationId });
 
@@ -148,11 +149,11 @@ function EducationItem({
   return (
     <div ref={setNodeRef} style={style} className="space-y-4 rounded-lg border p-4">
       <div className="flex items-start justify-between">
-        <div className="flex items-start gap-2">
+        <div className="flex items-start gap-2 flex-1">
           <div {...attributes} {...listeners} className="cursor-grab pt-2">
             <GripVertical className="h-5 w-5 text-muted-foreground" />
           </div>
-          <div className="flex-1 space-y-3">
+          <div className="flex-1 space-y-3 max-w-md">
             <Input
               value={education.university}
               onChange={(e) =>
@@ -168,13 +169,37 @@ function EducationItem({
             />
           </div>
         </div>
-        <Button onClick={onRemove} size="icon" variant="ghost">
-          <Trash2 className="h-4 w-4" />
-        </Button>
+        <div>
+          {confirmDelete ? (
+            <div className="flex flex-col gap-2">
+              <Button
+                onClick={() => {
+                  onRemove();
+                  setConfirmDelete(false);
+                }}
+                size="sm"
+                variant="destructive"
+              >
+                Confirm
+              </Button>
+              <Button
+                onClick={() => setConfirmDelete(false)}
+                size="sm"
+                variant="outline"
+              >
+                Cancel
+              </Button>
+            </div>
+          ) : (
+            <Button onClick={() => setConfirmDelete(true)} size="icon" variant="ghost">
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          )}
+        </div>
       </div>
 
-      <div className="grid grid-cols-5 gap-3 items-end">
-        <div className="col-span-2">
+      <div className="grid grid-cols-1 md:grid-cols-7 gap-3 items-end">
+        <div className="md:col-span-2">
           <Label className="text-xs mb-1.5 block">Start Date</Label>
           <Input
             value={education.duration.start}
@@ -188,10 +213,10 @@ function EducationItem({
             className="h-9"
           />
         </div>
-        <div className="flex items-center justify-center pb-1">
+        <div className="hidden md:flex items-center justify-center pb-1">
           <ArrowRight className="h-5 w-5 text-muted-foreground" />
         </div>
-        <div className="col-span-2">
+        <div className="md:col-span-2">
           <Label className="text-xs mb-1.5 block">End Date</Label>
           <Input
             value={education.duration.end}
@@ -205,16 +230,15 @@ function EducationItem({
             className="h-9"
           />
         </div>
-      </div>
-
-      <div>
-        <Label className="text-xs mb-1.5 block">GPA</Label>
-        <Input
-          value={education.gpa}
-          onChange={(e) => onUpdate({ ...education, gpa: e.target.value })}
-          placeholder="3.5/4.0"
-          className="w-32 h-9"
-        />
+        <div className="md:col-span-2">
+          <Label className="text-xs mb-1.5 block">GPA</Label>
+          <Input
+            value={education.gpa}
+            onChange={(e) => onUpdate({ ...education, gpa: e.target.value })}
+            placeholder="3.5/4.0"
+            className="h-9"
+          />
+        </div>
       </div>
 
       <div className="mt-4">
@@ -257,6 +281,13 @@ function EducationItem({
                         if (e.key === "Escape") {
                           setIsAddingCoursework(false);
                           setNewCoursework("");
+                        }
+                      }}
+                      onBlur={() => {
+                        if (newCoursework.trim()) {
+                          addCoursework();
+                        } else {
+                          setIsAddingCoursework(false);
                         }
                       }}
                       placeholder="Course name"

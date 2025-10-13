@@ -84,6 +84,29 @@ export default function ResumeEditor({ initialData, onClose, onSave }: ResumeEdi
     });
   }, []);
 
+  // Update section title
+  const updateSectionTitle = useCallback((oldTitle: string, newTitle: string) => {
+    setResumeData((prev) => {
+      // Update section_idx
+      const newSectionIdx = prev.section_idx.map((name) =>
+        name === oldTitle ? newTitle : name
+      );
+
+      // Update data array
+      const newData = prev.data.map((section) =>
+        section.section === oldTitle
+          ? { ...section, section: newTitle as any }
+          : section
+      );
+
+      return {
+        ...prev,
+        data: newData as any,
+        section_idx: newSectionIdx,
+      };
+    });
+  }, []);
+
   // Handle drag end for sections
   const handleDragEnd = useCallback((event: DragEndEvent) => {
     const { active, over } = event;
@@ -209,6 +232,7 @@ export default function ResumeEditor({ initialData, onClose, onSave }: ResumeEdi
               onUpdateHeader={updateHeader}
               onUpdateSection={updateSection}
               onReorderSections={reorderSections}
+              onUpdateSectionTitle={updateSectionTitle}
               isMobile={isMobile}
             />
           )}
@@ -220,6 +244,7 @@ export default function ResumeEditor({ initialData, onClose, onSave }: ResumeEdi
               onUpdateHeader={updateHeader}
               onUpdateSection={updateSection}
               onReorderSections={reorderSections}
+              onUpdateSectionTitle={updateSectionTitle}
               isMobile={isMobile}
             />
           )}

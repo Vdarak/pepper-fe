@@ -21,6 +21,7 @@ import { GripVertical } from "lucide-react";
 interface EducationPreviewProps {
   data: Education[];
   onUpdate: (newData: Education[]) => void;
+  hideTitle?: boolean;
 }
 
 function EducationItem({
@@ -148,7 +149,7 @@ function EducationItem({
   );
 }
 
-export function EducationPreview({ data, onUpdate }: EducationPreviewProps) {
+export function EducationPreview({ data, onUpdate, hideTitle }: EducationPreviewProps) {
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
@@ -176,9 +177,11 @@ export function EducationPreview({ data, onUpdate }: EducationPreviewProps) {
 
   return (
     <div>
-      <h2 className="text-xl font-bold uppercase mb-3 border-b border-foreground/20 pb-1">
-        Education
-      </h2>
+      {!hideTitle && (
+        <h2 className="text-xl font-bold uppercase mb-3 border-b border-foreground/20 pb-1">
+          Education
+        </h2>
+      )}
       <DndContext
         sensors={sensors}
         collisionDetection={closestCenter}

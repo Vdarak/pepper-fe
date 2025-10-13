@@ -80,6 +80,7 @@ function SortableCategory({
 }) {
   const [isAddingSkill, setIsAddingSkill] = useState(false);
   const [newSkillName, setNewSkillName] = useState("");
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const { attributes, listeners, setNodeRef, transform, transition } =
     useSortable({ id: categoryId });
 
@@ -138,9 +139,33 @@ function SortableCategory({
             className="h-8 w-40 font-semibold"
           />
         </div>
-        <Button onClick={onRemove} size="sm" variant="ghost">
-          <X className="h-4 w-4" />
-        </Button>
+        <div>
+          {confirmDelete ? (
+            <div className="flex gap-2">
+              <Button
+                onClick={() => {
+                  onRemove();
+                  setConfirmDelete(false);
+                }}
+                size="sm"
+                variant="destructive"
+              >
+                Confirm
+              </Button>
+              <Button
+                onClick={() => setConfirmDelete(false)}
+                size="sm"
+                variant="outline"
+              >
+                Cancel
+              </Button>
+            </div>
+          ) : (
+            <Button onClick={() => setConfirmDelete(true)} size="sm" variant="ghost">
+              <X className="h-4 w-4" />
+            </Button>
+          )}
+        </div>
       </div>
 
       <DndContext
@@ -170,6 +195,13 @@ function SortableCategory({
                     if (e.key === "Escape") {
                       setIsAddingSkill(false);
                       setNewSkillName("");
+                    }
+                  }}
+                  onBlur={() => {
+                    if (newSkillName.trim()) {
+                      addSkill();
+                    } else {
+                      setIsAddingSkill(false);
                     }
                   }}
                   placeholder="Skill name"

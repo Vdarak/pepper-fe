@@ -449,11 +449,12 @@ export async function reUploadResume(data: ResumeReUploadData): Promise<ResumeUp
 
 interface Resume {
   Name: string;
-  IsUploaded: boolean;
+  IsOriginal?: boolean;
   CreatedOn: string;
   UpdatedOn: string;
   IDResume: string;
   Analyzed: boolean;
+  IsParsed: boolean;
 }
 
 interface ResumeListResponse {
@@ -470,7 +471,14 @@ interface ResumeRenameResponse {
   resume_id: string;
 }
 
-/**
+// Resume info response type
+export interface ResumeInfoResponse {
+  resume_data: Array<{
+    IDResumeSection: string;
+    SectionTitle: string;
+    Items: string; // JSON string that needs to be parsed
+  }>;
+}/**
  * List all resumes
  */
 export async function listResumes(count: number = 15): Promise<ResumeListResponse> {
@@ -563,6 +571,21 @@ export async function downloadResume(resumeId: string): Promise<Blob> {
 }
 
 /**
+ * Fetch resume info for editor
+ */
+export async function fetchResumeInfo(resumeId: string): Promise<ResumeInfoResponse> {
+  if (!resumeId || !resumeId.trim()) {
+    throw new ApiError(400, 'Resume ID is required');
+  }
+
+  return apiRequest<ResumeInfoResponse>('/resume/fetch-info', {
+    method: 'POST',
+    body: JSON.stringify({ IDResume: resumeId.trim() }),
+    credentials: 'include',
+  });
+}
+
+/**
  * Job-related types
  */
 export interface Job {
@@ -621,6 +644,15 @@ export async function fetchJobs(size: number = 30): Promise<JobListing[]> {
     body: JSON.stringify({ size }),
     credentials: 'include',
   });
+}
+
+// Resume info response type
+export interface ResumeInfoResponse {
+  resume_data: Array<{
+    IDResumeSection: string;
+    SectionTitle: string;
+    Items: string; // JSON string that needs to be parsed
+  }>;
 }
 
 export { 

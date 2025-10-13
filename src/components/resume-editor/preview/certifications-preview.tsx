@@ -16,10 +16,11 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { GripVertical } from "lucide-react";
+import { Certification } from "@/types/resume";
 
 interface CertificationsPreviewProps {
-  data: string[];
-  onUpdate: (newData: string[]) => void;
+  data: Certification[];
+  onUpdate: (newData: Certification[]) => void;
   hideTitle?: boolean;
 }
 
@@ -28,9 +29,9 @@ function SortableCertification({
   index,
   onUpdate,
 }: {
-  certification: string;
+  certification: Certification;
   index: number;
-  onUpdate: (value: string) => void;
+  onUpdate: (value: Certification) => void;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id: `cert-prev-${index}` });
@@ -42,24 +43,73 @@ function SortableCertification({
   };
 
   return (
-    <li ref={setNodeRef} style={style} className="group flex">
-      <div
-        {...attributes}
-        {...listeners}
-        className="cursor-grab opacity-0 group-hover:opacity-100 -ml-4 mr-1"
-      >
-        <GripVertical className="h-3 w-3 text-muted-foreground" />
+    <div ref={setNodeRef} style={style} className="group mb-3">
+      <div className="flex items-start gap-1">
+        <div
+          {...attributes}
+          {...listeners}
+          className="cursor-grab opacity-0 group-hover:opacity-100 -ml-4 mr-1 pt-0.5"
+        >
+          <GripVertical className="h-3 w-3 text-muted-foreground" />
+        </div>
+        <div className="flex-1">
+          <div className="flex justify-between items-baseline mb-0.5">
+            <span
+              contentEditable
+              suppressContentEditableWarning
+              onBlur={(e) => onUpdate({ ...certification, title: e.currentTarget.textContent || "" })}
+              className="font-semibold cursor-text outline-none hover:bg-accent/20 rounded px-1"
+            >
+              {certification.title}
+            </span>
+            {certification.duration.end && (
+              <span
+                contentEditable
+                suppressContentEditableWarning
+                onBlur={(e) =>
+                  onUpdate({
+                    ...certification,
+                    duration: { ...certification.duration, end: e.currentTarget.textContent || "" },
+                  })
+                }
+                className="text-xs cursor-text outline-none hover:bg-accent/20 rounded px-1"
+              >
+                {certification.duration.end}
+              </span>
+            )}
+          </div>
+          {certification.entity && (
+            <span
+              contentEditable
+              suppressContentEditableWarning
+              onBlur={(e) => onUpdate({ ...certification, entity: e.currentTarget.textContent || "" })}
+              className="text-sm italic cursor-text outline-none hover:bg-accent/20 rounded px-1"
+            >
+              {certification.entity}
+            </span>
+          )}
+          {certification.description && certification.description.length > 0 && (
+            <ul className="list-disc list-inside text-sm mt-1 space-y-0.5">
+              {certification.description.map((desc, descIndex) => (
+                <li
+                  key={descIndex}
+                  contentEditable
+                  suppressContentEditableWarning
+                  onBlur={(e) => {
+                    const newDesc = [...certification.description];
+                    newDesc[descIndex] = e.currentTarget.textContent || "";
+                    onUpdate({ ...certification, description: newDesc });
+                  }}
+                  className="cursor-text outline-none hover:bg-accent/20 rounded px-1"
+                >
+                  {desc}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
       </div>
-      <span className="mr-2">•</span>
-      <span
-        contentEditable
-        suppressContentEditableWarning
-        onBlur={(e) => onUpdate(e.currentTarget.textContent || "")}
-        className="flex-1 cursor-text outline-none hover:bg-accent/20 rounded px-1"
-      >
-        {certification}
-      </span>
-    </li>
+    </div>
   );
 }
 
@@ -83,7 +133,7 @@ export function CertificationsPreview({ data, onUpdate, hideTitle }: Certificati
     }
   };
 
-  const updateCertification = (index: number, value: string) => {
+  const updateCertification = (index: number, value: Certification) => {
     const newData = [...data];
     newData[index] = value;
     onUpdate(newData);
@@ -105,7 +155,7 @@ export function CertificationsPreview({ data, onUpdate, hideTitle }: Certificati
           items={data.map((_, i) => `cert-prev-${i}`)}
           strategy={verticalListSortingStrategy}
         >
-          <ul className="text-sm space-y-0.5 pl-4">
+          <div>
             {data.map((certification, index) => (
               <SortableCertification
                 key={`cert-prev-${index}`}
@@ -114,9 +164,10 @@ export function CertificationsPreview({ data, onUpdate, hideTitle }: Certificati
                 onUpdate={(value) => updateCertification(index, value)}
               />
             ))}
-          </ul>
+          </div>
         </SortableContext>
       </DndContext>
     </div>
   );
 }
+

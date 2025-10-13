@@ -132,6 +132,7 @@ export default function JobDetailView({ job, onBack }: JobDetailViewProps) {
                     alt={company.Name}
                     width={isHeaderCollapsed ? 40 : 48}
                     height={isHeaderCollapsed ? 40 : 48}
+                    unoptimized
                     className="w-full h-full object-contain p-1"
                   />
                 ) : (

@@ -176,6 +176,7 @@ export default function LandingPage() {
               alt="Pepper Logo" 
               width={120} 
               height={120}
+              unoptimized
               className="w-24 h-24 md:w-32 md:h-32"
             />
             <h1 className="text-8xl md:text-9xl font-bold text-primary tracking-tight">

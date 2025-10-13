@@ -61,13 +61,20 @@ export interface Summary {
   content: string;
 }
 
+export interface Certification {
+  title: string;
+  entity: string;
+  duration: Duration;
+  description: string[];
+}
+
 export type SectionItem =
   | { section: "skills"; item: SkillsSection }
   | { section: "education"; item: Education[] }
   | { section: "projects"; item: Project[] }
   | { section: "research experience"; item: Experience[] }
   | { section: "professional experience"; item: Experience[] }
-  | { section: "certifications and achievements"; item: string[] }
+  | { section: "certifications and achievements"; item: Certification[] }
   | { section: "summary"; item: Summary };
 
 export interface ResumeData {

@@ -98,6 +98,7 @@ export default function JobCard({ job, isActive = false, onClick }: JobCardProps
                 alt={company.Name} 
                 width={48}
                 height={48}
+                unoptimized
                 className="w-full h-full object-contain p-1" 
               />
             ) : (

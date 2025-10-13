@@ -91,9 +91,17 @@ export function convertApiToResumeData(apiData: ResumeInfoResponse): ResumeData 
       case "education":
         // Handle both array and object formats
         const educationItems = Array.isArray(sectionData) ? sectionData : [sectionData];
+        const educations = educationItems.map((edu: any) => ({
+          major: edu.major || "",
+          university: edu.university || "",
+          duration: edu.duration || { start: "", end: "", IsCurrent: false },
+          gpa: edu.gpa || "",
+          coursework: edu.coursework || [],
+          description: edu.description || []
+        }));
         data.push({
           section: "education",
-          item: educationItems
+          item: educations
         });
         section_idx.push("education");
         console.log("  → Mapped to education");
@@ -127,21 +135,33 @@ export function convertApiToResumeData(apiData: ResumeInfoResponse): ResumeData 
           : "professional experience";
         
         const experienceItems = Array.isArray(sectionData) ? sectionData : [sectionData];
+        const experiences = experienceItems.map((exp: any) => ({
+          role: exp.role || "",
+          company: exp.company || "",
+          duration: exp.duration || { start: "", end: "", IsCurrent: false },
+          description: exp.description || []
+        }));
         data.push({
           section: sectionType,
-          item: experienceItems
+          item: experiences
         });
         section_idx.push(sectionType);
-        console.log(`  → Mapped to ${sectionType} (${experienceItems.length} items)`);
+        console.log(`  → Mapped to ${sectionType} (${experiences.length} items)`);
         break;
 
       case "certifications and achievements":
       case "certifications":
       case "achievements":
         const certItems = Array.isArray(sectionData) ? sectionData : [sectionData];
+        const certifications = certItems.map((cert: any) => ({
+          title: cert.title || "",
+          entity: cert.entity || "",
+          duration: cert.duration || { start: "", end: "", IsCurrent: false },
+          description: cert.description || []
+        }));
         data.push({
           section: "certifications and achievements",
-          item: certItems
+          item: certifications
         });
         section_idx.push("certifications and achievements");
         console.log("  → Mapped to certifications and achievements");

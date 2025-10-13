@@ -586,6 +586,39 @@ export async function fetchResumeInfo(resumeId: string): Promise<ResumeInfoRespo
 }
 
 /**
+ * Save resume data
+ */
+export async function saveResumeData(payload: {
+  IDResume: string;
+  resume_data: Array<{
+    IDResumeSection: string;
+    SectionTitle: string;
+    Items: string;
+  }>;
+}): Promise<{
+  message: string;
+  resume_data: Array<{
+    IDResumeSection: string;
+    SectionTitle: string;
+    Items: string;
+  }>;
+}> {
+  if (!payload.IDResume || !payload.IDResume.trim()) {
+    throw new ApiError(400, 'Resume ID is required');
+  }
+
+  if (!payload.resume_data || !Array.isArray(payload.resume_data)) {
+    throw new ApiError(400, 'Resume data must be an array');
+  }
+
+  return apiRequest('/resume/edit/save', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+    credentials: 'include',
+  });
+}
+
+/**
  * Job-related types
  */
 export interface Job {

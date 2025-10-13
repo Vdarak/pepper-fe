@@ -131,10 +131,10 @@ function CategoryPreview({
         >
           <span className="inline-flex flex-wrap gap-1">
             {category.skills.map((skill, index) => (
-              <>
-                <SortableSkill key={skill} skill={skill} />
+              <span key={`${skill}-${index}`} className="inline-flex items-center gap-1">
+                <SortableSkill skill={skill} />
                 {index < category.skills.length - 1 && <span>, </span>}
-              </>
+              </span>
             ))}
           </span>
         </SortableContext>

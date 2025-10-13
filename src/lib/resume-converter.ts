@@ -131,7 +131,11 @@ export function convertApiToResumeData(apiData: ResumeInfoResponse): ResumeData 
     
     // Store the database ID mapped to the normalized name
     // We'll need this when saving changes back to the API
-    sectionIds[sectionTitle] = section.IDResumeSection;
+    // IMPORTANT: Only store the ID if we haven't seen this section before
+    // This prevents overwriting the ID when we have duplicate sections
+    if (!sectionIds[sectionTitle]) {
+      sectionIds[sectionTitle] = section.IDResumeSection;
+    }
     
     // ======================================================================
     // STEP 4a: Parse the JSON string in Items field
@@ -162,21 +166,27 @@ export function convertApiToResumeData(apiData: ResumeInfoResponse): ResumeData 
       // NOT added to section_idx because it's always displayed first
       // and is not part of the reorderable sections
       case "header":
+        // Handle both array format [{}] and object format {}
+        const headerData = Array.isArray(sectionData) ? sectionData[0] : sectionData;
+        
+        console.log("  → Header raw data:", JSON.stringify(headerData));
+        
         header = {
-          Name: sectionData.Name || "",              // Full name
-          email: sectionData.email || "",            // Email address
-          phone: sectionData.phone || "",            // Phone number
-          location: sectionData.location || "",      // City, State or full address
+          // Handle both "Name" and "name" field variations
+          Name: headerData.Name || headerData.name || "",              // Full name
+          email: headerData.email || "",            // Email address
+          phone: headerData.phone || "",            // Phone number
+          location: headerData.location || "",      // City, State or full address
           
           // Social/professional links (LinkedIn, GitHub, Portfolio, etc.)
-          links: (sectionData.links || []).map((link: any, index: number) => ({
+          links: (headerData.links || []).map((link: any, index: number) => ({
             index: link.index || index + 1,          // Display order
             type: link.type || link.label || "",     // "LinkedIn", "GitHub", etc.
             url: link.url || "",                     // Full URL
             label: link.label || link.type || ""     // Display text
           }))
         };
-        console.log("  → Mapped to header");
+        console.log("  → Mapped to header:", header);
         break;
 
       // ====================================================================
@@ -353,12 +363,28 @@ export function convertApiToResumeData(apiData: ResumeInfoResponse): ResumeData 
           description: exp.description || []         // Responsibilities/achievements
         }));
         
-        data.push({
-          section: sectionType,  // Use the determined section type
-          item: experiences
-        });
-        section_idx.push(sectionType);
-        console.log(`  → Mapped to ${sectionType} (${experiences.length} items)`);
+        // Check if this section type already exists
+        const existingSection = data.find(d => d.section === sectionType);
+        if (existingSection) {
+          // If it exists, merge the items
+          existingSection.item = [...existingSection.item, ...experiences];
+          console.log(`  → Merged into existing ${sectionType} (total ${existingSection.item.length} items)`);
+        } else {
+          // Add new section
+          data.push({
+            section: sectionType,  // Use the determined section type
+            item: experiences
+          });
+          section_idx.push(sectionType);
+          console.log(`  → Mapped to ${sectionType} (${experiences.length} items)`);
+        }
+        
+        // IMPORTANT: Ensure the normalized sectionType has the ID
+        // If sectionTitle != sectionType (e.g., "work experience" -> "professional experience")
+        // we need to map the ID to the normalized name
+        if (sectionTitle !== sectionType && !sectionIds[sectionType]) {
+          sectionIds[sectionType] = section.IDResumeSection;
+        }
         break;
 
       // ====================================================================
@@ -401,6 +427,14 @@ export function convertApiToResumeData(apiData: ResumeInfoResponse): ResumeData 
         break;
 
       // ====================================================================
+      // CASE: DELETED SECTIONS
+      // ====================================================================
+      // Skip sections marked as deleted
+      case "<--deleted-->":
+        console.log("  → Skipped deleted section");
+        break;
+
+      // ====================================================================
       // CASE: SUMMARY
       // ====================================================================
       // Professional summary or objective statement at top of resume
@@ -414,12 +448,17 @@ export function convertApiToResumeData(apiData: ResumeInfoResponse): ResumeData 
       // FLEXIBILITY: Checks multiple possible field names for backward compatibility
       // - summary, description, or content
       case "summary":
+        // Handle both array format [{}] and object format {}
+        const summaryData = Array.isArray(sectionData) ? sectionData[0] : sectionData;
+        
+        console.log("  → Summary raw data:", JSON.stringify(summaryData));
+        
         data.push({
           section: "summary",
           item: {
             // Try multiple field names to find the summary text
-            content: sectionData.summary || sectionData.description || sectionData.content || "",
-            generated: sectionData.generated || false  // Track if AI-generated
+            content: summaryData.summary || summaryData.description || summaryData.content || "",
+            generated: summaryData.generated || false  // Track if AI-generated
           }
         });
         section_idx.push("summary");
@@ -427,12 +466,23 @@ export function convertApiToResumeData(apiData: ResumeInfoResponse): ResumeData 
         break;
 
       // ====================================================================
-      // DEFAULT CASE: Unknown Section Type
+      // DEFAULT CASE: Custom Section Type
       // ====================================================================
-      // If we encounter a section title we don't recognize, log a warning
-      // This helps developers identify new section types that need handling
+      // If we encounter a section title we don't recognize, treat it as a custom section
+      // Use a generic structure similar to experience/projects
       default:
-        console.warn(`  → Unknown section type: "${sectionTitle}" - SKIPPED`);
+        console.log(`  → Mapping custom section: "${sectionTitle}"`);
+        
+        // Ensure data is in array format for consistency
+        const customItems = Array.isArray(sectionData) ? sectionData : [sectionData];
+        
+        // Add as custom section with generic structure
+        data.push({
+          section: sectionTitle as any,
+          item: customItems
+        });
+        section_idx.push(sectionTitle);
+        console.log(`  → Mapped to custom section "${sectionTitle}"`);
         break;
     }
   }  // End of for loop
@@ -444,14 +494,30 @@ export function convertApiToResumeData(apiData: ResumeInfoResponse): ResumeData 
   console.log("Final data sections:", data.map(d => d.section));
 
   // ========================================================================
-  // STEP 6: Return the complete ResumeData object
+  // STEP 6: Return the complete ResumeData object with section IDs
   // ========================================================================
   // This object is now ready to be consumed by React components
   return {
     header,       // Contact information
     data,         // All resume sections (skills, education, etc.)
-    section_idx   // Section ordering for drag-and-drop
+    section_idx,  // Section ordering for drag-and-drop
+    sectionIds    // Map of section names to their database IDs
   };
+}
+
+/**
+ * Helper function to extract section IDs from API data
+ * Returns a map of normalized section names to their IDs
+ */
+export function extractSectionIds(apiData: ResumeInfoResponse): { [key: string]: string } {
+  const sectionIds: { [key: string]: string } = {};
+  
+  for (const section of apiData.resume_data) {
+    const sectionTitle = section.SectionTitle.toLowerCase();
+    sectionIds[sectionTitle] = section.IDResumeSection;
+  }
+  
+  return sectionIds;
 }
 
 /**
@@ -474,7 +540,7 @@ export function convertApiToResumeData(apiData: ResumeInfoResponse): ResumeData 
  *   section_idx: ["skills", "education", ...]
  * }
  * 
- * INPUT (sectionIds: optional):
+ * INPUT (sectionIds: required):
  * {
  *   "header": "uuid-123",
  *   "skills": "uuid-456",
@@ -482,7 +548,7 @@ export function convertApiToResumeData(apiData: ResumeInfoResponse): ResumeData 
  *   ...
  * }
  * Purpose: Maps section names to their database IDs for updates
- * If not provided, empty strings are used (for new resumes)
+ * REQUIRED for proper section tracking
  * 
  * OUTPUT:
  * {
@@ -500,7 +566,8 @@ export function convertApiToResumeData(apiData: ResumeInfoResponse): ResumeData 
  * 1. Items field MUST be a stringified JSON (not an object)
  * 2. Header is ALWAYS added first (not based on section_idx order)
  * 3. Section titles are capitalized for API consistency
- * 4. Empty IDResumeSection ("") is valid for new sections
+ * 4. Section IDs are preserved from the sectionIds map
+ * 5. Deleted sections have SectionTitle set to "<--DELETED-->"
  * 
  * WORKFLOW:
  * 1. Initialize empty resume_data array
@@ -508,14 +575,14 @@ export function convertApiToResumeData(apiData: ResumeInfoResponse): ResumeData 
  * 3. Loop through each section in data array
  * 4. Map section names to proper format and titles
  * 5. Stringify the item data into Items field
- * 6. Attach database ID from sectionIds if available
+ * 6. Attach database ID from sectionIds
  * 7. Return complete API-ready object
  * 
  * ============================================================================
  */
 export function convertResumeDataToApi(
   resumeData: ResumeData,
-  sectionIds?: { [key: string]: string }
+  sectionIds: { [key: string]: string }
 ): { resume_data: Array<{ IDResumeSection: string; SectionTitle: string; Items: string }> } {
   // ========================================================================
   // STEP 1: Initialize the resume_data array
@@ -546,9 +613,9 @@ export function convertResumeDataToApi(
 
   // Add header to resume_data with stringified Items
   resume_data.push({
-    IDResumeSection: sectionIds?.["header"] || "",  // Database ID or empty for new
-    SectionTitle: "Header",                         // Capitalized for API
-    Items: JSON.stringify(headerData)               // MUST be string, not object!
+    IDResumeSection: sectionIds["header"] || "",  // Database ID (required)
+    SectionTitle: "Header",                        // Capitalized for API
+    Items: JSON.stringify(headerData)              // MUST be string, not object!
   });
 
   // ========================================================================
@@ -556,10 +623,16 @@ export function convertResumeDataToApi(
   // ========================================================================
   // Loop through the data array (which contains all non-header sections)
   // Each section needs to be mapped to its API format with proper naming
+  
+  console.log("Converting sections to API format...");
+  console.log("Available sectionIds:", sectionIds);
+  
   for (const sectionItem of resumeData.data) {
     // Variables to hold the transformed data and section title
     let items: any;           // Will hold the data to be stringified
     let sectionTitle: string; // Will hold the capitalized section name for API
+    
+    console.log(`Processing section: "${sectionItem.section}"`);
 
     // ======================================================================
     // Switch on section type to format data appropriately
@@ -648,27 +721,65 @@ export function convertResumeDataToApi(
         break;
 
       // ====================================================================
-      // DEFAULT: Unknown section type
+      // CASE: EXPERIENCE (generic)
+      // ====================================================================
+      case "experience":
+        // Generic experience section
+        items = sectionItem.item;  // Already in correct format
+        sectionTitle = "Experience";
+        break;
+
+      // ====================================================================
+      // CASE: DELETED SECTIONS
+      // ====================================================================
+      case "<--deleted-->":
+        // Keep deleted sections with special marker title
+        items = (sectionItem as any).item;
+        sectionTitle = "<--DELETED-->";
+        break;
+
+      // ====================================================================
+      // DEFAULT: Unknown/Custom section type
       // ====================================================================
       // If we encounter a section we don't recognize, pass it through
-      // This provides forward compatibility with new section types
+      // This provides forward compatibility with new section types and custom sections
       default:
         items = (sectionItem as any).item;      // Use data as-is
-        sectionTitle = (sectionItem as any).section;  // Use section name as-is
+        // Capitalize section name properly for custom sections
+        sectionTitle = (sectionItem as any).section
+          .split(' ')
+          .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
+          .join(' ');
     }
 
     // ======================================================================
     // STEP 4: Add the formatted section to resume_data
     // ======================================================================
     // Each section needs three pieces of information:
-    // 1. IDResumeSection: Database ID (from sectionIds) or empty string
+    // 1. IDResumeSection: Database ID (from sectionIds, required)
     // 2. SectionTitle: Properly capitalized section name
     // 3. Items: JSON STRING of the section data (NOT an object!)
+    
+    // Special handling for deleted sections
+    let sectionId = "";
+    if (sectionItem.section === "<--DELETED-->") {
+      // For deleted sections, the ID is stored directly in the section item
+      sectionId = (sectionItem as any)._deletedId || "";
+      console.log("  → Deleted section found");
+      console.log("  → _deletedId:", (sectionItem as any)._deletedId);
+      console.log("  → Final ID:", sectionId);
+    } else {
+      // Normal section: look up by section name (already normalized/lowercase)
+      sectionId = sectionIds[sectionItem.section] || "";
+      console.log("  → Normal section, looking up ID for:", sectionItem.section);
+      console.log("  → Found ID:", sectionId);
+    }
+    
+    console.log("  → Adding to payload with ID:", sectionId, "Title:", sectionTitle);
+    
     resume_data.push({
-      // Look up the database ID using normalized section name
-      // sectionItem.section is lowercase (e.g., "skills")
-      // If no ID exists (new section), use empty string
-      IDResumeSection: sectionIds?.[sectionItem.section.toLowerCase()] || "",
+      // Use the section ID determined above
+      IDResumeSection: sectionId,
       
       // Use the capitalized section title determined in switch statement
       SectionTitle: sectionTitle,

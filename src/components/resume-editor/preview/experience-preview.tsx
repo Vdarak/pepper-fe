@@ -78,15 +78,17 @@ function ExperienceItem({
   experience,
   onUpdate,
   isOverlay = false,
+  itemId,
 }: {
   experience: Experience;
   onUpdate: (newExp: Experience) => void;
   isOverlay?: boolean;
+  itemId?: string;
 }) {
   const [activeBulletId, setActiveBulletId] = useState<string | null>(null);
-  const expId = (experience.role + experience.company).replace(/\s+/g, "-");
+  const expId = itemId || (experience.role + experience.company).replace(/\s+/g, "-");
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
-    useSortable({ id: experience.role + experience.company });
+    useSortable({ id: itemId || experience.role + experience.company });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -249,8 +251,8 @@ export function ExperiencePreview({ title, data, onUpdate, hideTitle }: Experien
     setActiveExpId(null);
 
     if (over && active.id !== over.id) {
-      const oldIndex = data.findIndex((e) => e.role + e.company === active.id);
-      const newIndex = data.findIndex((e) => e.role + e.company === over.id);
+      const oldIndex = data.findIndex((e, i) => `exp-${i}` === active.id);
+      const newIndex = data.findIndex((e, i) => `exp-${i}` === over.id);
       const newData = arrayMove(data, oldIndex, newIndex);
       onUpdate(newData);
     }
@@ -276,13 +278,14 @@ export function ExperiencePreview({ title, data, onUpdate, hideTitle }: Experien
         onDragEnd={handleDragEnd}
       >
         <SortableContext
-          items={data.map((e) => e.role + e.company)}
+          items={data.map((e, i) => `exp-${i}`)}
           strategy={verticalListSortingStrategy}
         >
           <div className="pl-6">
             {data.map((experience, index) => (
               <ExperienceItem
-                key={experience.role + experience.company}
+                key={`exp-${index}`}
+                itemId={`exp-${index}`}
                 experience={experience}
                 onUpdate={(newExp) => updateExperience(index, newExp)}
               />
@@ -292,7 +295,7 @@ export function ExperiencePreview({ title, data, onUpdate, hideTitle }: Experien
         <DragOverlay dropAnimation={null}>
           {activeExpId ? (
             <ExperienceItem
-              experience={data.find((e) => e.role + e.company === activeExpId)!}
+              experience={data.find((e, i) => `exp-${i}` === activeExpId)!}
               onUpdate={() => {}}
               isOverlay={true}
             />

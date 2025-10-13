@@ -74,13 +74,16 @@ export type SectionItem =
   | { section: "projects"; item: Project[] }
   | { section: "research experience"; item: Experience[] }
   | { section: "professional experience"; item: Experience[] }
+  | { section: "experience"; item: Experience[] }
   | { section: "certifications and achievements"; item: Certification[] }
-  | { section: "summary"; item: Summary };
+  | { section: "summary"; item: Summary }
+  | { section: string; item: any }; // Allow custom sections with any data
 
 export interface ResumeData {
   header: Header;
   data: SectionItem[];
   section_idx: string[];
+  sectionIds?: { [key: string]: string }; // Map of section names to their database IDs
 }
 
 // Helper type for section names
@@ -91,4 +94,22 @@ export type SectionName =
   | "research experience"
   | "professional experience"
   | "certifications and achievements"
-  | "summary";
+  | "summary"
+  | "experience"; // Add general experience type
+
+// API Format Types for Resume Sections
+export interface ResumeSectionData {
+  IDResumeSection: string;
+  SectionTitle: string;
+  Items: string; // JSON stringified items
+}
+
+export interface SaveResumeRequest {
+  IDResume: string;
+  resume_data: ResumeSectionData[];
+}
+
+export interface SaveResumeResponse {
+  message: string;
+  resume_data: ResumeSectionData[];
+}

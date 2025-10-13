@@ -172,16 +172,6 @@ function ResumeUploadContent() {
     router.push("/dashboard");
   };
 
-  const getFileIcon = () => {
-    if (!formData.file) return null;
-    
-    return (
-      <div className="flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4">
-        <FileText className="h-8 w-8 text-primary" />
-      </div>
-    );
-  };
-
   // Don't render until authorization is confirmed
   if (isChecking || !isAuthorized) {
     return null;

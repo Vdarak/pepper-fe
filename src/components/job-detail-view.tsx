@@ -15,6 +15,7 @@ import {
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
+import Image from "next/image";
 
 interface JobDetailViewProps {
   job: JobListing | null;
@@ -126,9 +127,11 @@ export default function JobDetailView({ job, onBack }: JobDetailViewProps) {
                 }`}
               >
                 {company.ImageUrl ? (
-                  <img
+                  <Image
                     src={company.ImageUrl}
                     alt={company.Name}
+                    width={isHeaderCollapsed ? 40 : 48}
+                    height={isHeaderCollapsed ? 40 : 48}
                     className="w-full h-full object-contain p-1"
                   />
                 ) : (

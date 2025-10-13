@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { completeAccountSetup, ApiError, type AccountSetupData } from "@/lib/api";
 import { US_STATES } from "@/lib/data";
 import { useAuthProtection } from "@/hooks/useAuthProtection";

@@ -17,16 +17,6 @@ function VerificationContent() {
   const [verificationState, setVerificationState] = useState<VerificationState>('loading');
   const [errorMessage, setErrorMessage] = useState<string>('');
 
-  useEffect(() => {
-    if (!token) {
-      setVerificationState('error');
-      setErrorMessage('Invalid verification link. No token provided.');
-      return;
-    }
-
-    verifyToken();
-  }, [token]);
-
   const verifyToken = async () => {
     if (!token) return;
 
@@ -52,6 +42,17 @@ function VerificationContent() {
       }
     }
   };
+
+  useEffect(() => {
+    if (!token) {
+      setVerificationState('error');
+      setErrorMessage('Invalid verification link. No token provided.');
+      return;
+    }
+
+    verifyToken();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token]);
 
   const handleStartAgain = () => {
     router.push('/');

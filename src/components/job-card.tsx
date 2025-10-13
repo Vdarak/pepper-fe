@@ -4,6 +4,7 @@ import { JobListing } from "@/lib/api";
 import { MapPin, DollarSign, Building, Bookmark, ThumbsUp, ThumbsDown, ExternalLink } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import Image from "next/image";
 
 interface JobCardProps {
   job: JobListing;
@@ -92,7 +93,13 @@ export default function JobCard({ job, isActive = false, onClick }: JobCardProps
           {/* Company Logo */}
           <div className="w-12 h-12 shrink-0 rounded-lg bg-muted flex items-center justify-center overflow-hidden">
             {company.ImageUrl ? (
-              <img src={company.ImageUrl} alt={company.Name} className="w-full h-full object-contain p-1" />
+              <Image 
+                src={company.ImageUrl} 
+                alt={company.Name} 
+                width={48}
+                height={48}
+                className="w-full h-full object-contain p-1" 
+              />
             ) : (
               <Building className="w-6 h-6 text-muted-foreground" />
             )}

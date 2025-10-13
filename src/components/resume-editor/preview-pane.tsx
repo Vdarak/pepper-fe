@@ -95,7 +95,7 @@ export function PreviewPane({
     const sectionData = resumeData.data.find((s) => s.section === sectionName);
     if (!sectionData) return null;
 
-    switch (sectionName) {
+    switch (sectionData.section) {
       case "skills":
         return (
           <SkillsPreview

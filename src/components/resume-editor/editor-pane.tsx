@@ -134,39 +134,42 @@ export function EditorPane({
 
               return (
                 <SortableSectionWrapper key={sectionName} sectionName={sectionName}>
-                  {sectionName === "skills" && (
+                  {sectionName === "skills" && sectionData.section === "skills" && (
                     <SkillsEditor
                       data={sectionData.item}
                       onUpdate={(newData: any) => onUpdateSection(sectionName, newData)}
                     />
                   )}
-                  {sectionName === "education" && (
+                  {sectionName === "education" && sectionData.section === "education" && (
                     <EducationEditor
                       data={sectionData.item}
                       onUpdate={(newData: any) => onUpdateSection(sectionName, newData)}
                     />
                   )}
-                  {sectionName === "projects" && (
+                  {sectionName === "projects" && sectionData.section === "projects" && (
                     <ProjectsEditor
                       data={sectionData.item}
                       onUpdate={(newData: any) => onUpdateSection(sectionName, newData)}
                     />
                   )}
                   {(sectionName === "research experience" ||
-                    sectionName === "professional experience") && (
+                    sectionName === "professional experience") && 
+                    (sectionData.section === "research experience" ||
+                    sectionData.section === "professional experience") && (
                     <ExperienceEditor
                       title={sectionName}
                       data={sectionData.item}
                       onUpdate={(newData: any) => onUpdateSection(sectionName, newData)}
                     />
                   )}
-                  {sectionName === "certifications and achievements" && (
+                  {sectionName === "certifications and achievements" && 
+                    sectionData.section === "certifications and achievements" && (
                     <CertificationsEditor
                       data={sectionData.item}
                       onUpdate={(newData: any) => onUpdateSection(sectionName, newData)}
                     />
                   )}
-                  {sectionName === "summary" && (
+                  {sectionName === "summary" && sectionData.section === "summary" && (
                     <SummaryEditor
                       data={sectionData.item}
                       onUpdate={(newData: any) => onUpdateSection(sectionName, newData)}

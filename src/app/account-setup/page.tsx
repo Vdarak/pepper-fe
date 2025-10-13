@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
-import { User, MapPin, Phone, Lock, ArrowRight, Eye, EyeOff, Sparkles } from "lucide-react";
+import { useState, Suspense } from "react";
+import { User, MapPin, Lock, ArrowRight, Eye, EyeOff, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -27,8 +27,6 @@ interface FormData {
 function AccountSetupContent() {
   const { isAuthorized, isChecking } = useAuthProtection();
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const email = searchParams.get("email") || "";
   
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);

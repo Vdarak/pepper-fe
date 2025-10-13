@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, Suspense } from "react";
-import { Briefcase, Target, ArrowRight, MapPin, DollarSign, Globe, Sparkles } from "lucide-react";
+import { Briefcase, Target, ArrowRight, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";

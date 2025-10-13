@@ -1,6 +1,6 @@
 "use client";
 
-import { Header, Link } from "@/types/resume";
+import { Header } from "@/types/resume";
 import { Mail, Phone, MapPin, ExternalLink } from "lucide-react";
 import { useState } from "react";
 
@@ -10,7 +10,7 @@ interface HeaderPreviewProps {
 }
 
 export function HeaderPreview({ header, onUpdate }: HeaderPreviewProps) {
-  const [editingField, setEditingField] = useState<string | null>(null);
+  const [, setEditingField] = useState<string | null>(null);
 
   const EditableText = ({
     value,

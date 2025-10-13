@@ -188,7 +188,7 @@ export async function checkAuthorization(): Promise<{ authorized: boolean; messa
       try {
         const data = await response.json();
         message = data.message || message;
-      } catch (e) {
+      } catch {
         // Response might not be JSON
       }
       return { authorized: false, message };
@@ -556,7 +556,7 @@ export async function downloadResume(resumeId: string): Promise<Blob> {
     try {
       const errorData = await response.json();
       errorMessage = errorData.message || errorData.error || errorMessage;
-    } catch (e) {
+    } catch {
       // If response is not JSON, use default error message
     }
     throw new ApiError(response.status, errorMessage);

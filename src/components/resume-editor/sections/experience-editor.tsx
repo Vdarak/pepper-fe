@@ -247,7 +247,7 @@ function ExperienceItem({
   );
 }
 
-export function ExperienceEditor({ title, data, onUpdate }: ExperienceEditorProps) {
+export function ExperienceEditor({ data, onUpdate }: ExperienceEditorProps) {
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {

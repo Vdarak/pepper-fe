@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useEffect, useState } from "react";
+import { useRef, useState } from "react";
 import { ResumeData } from "@/types/resume";
 import { HeaderPreview } from "./preview/header-preview";
 import { SkillsPreview } from "./preview/skills-preview";

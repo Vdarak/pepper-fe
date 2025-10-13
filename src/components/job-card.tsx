@@ -1,7 +1,7 @@
 "use client";
 
 import { JobListing } from "@/lib/api";
-import { MapPin, DollarSign, Briefcase, Building, Calendar, Bookmark, ThumbsUp, ThumbsDown, ExternalLink } from "lucide-react";
+import { MapPin, DollarSign, Building, Bookmark, ThumbsUp, ThumbsDown, ExternalLink } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
@@ -19,7 +19,6 @@ export default function JobCard({ job, isActive = false, onClick }: JobCardProps
     const min = jobData.PayYearlyMin;
     const max = jobData.PayYearlyMax;
     const freq = jobData.CompensationFrequency;
-    const currency = jobData.CompensationCurrency || "USD";
 
     if (freq === "PH") {
       const hourlyMin = jobData.PayHourlyMin || min;

@@ -18,7 +18,7 @@ import {
 } from "@/lib/api";
 import ResumeEditor from "@/components/resume-editor/resume-editor";
 import { ResumeData } from "@/types/resume";
-import { convertApiToResumeData, convertResumeDataToApi } from "@/lib/resume-converter";
+import { convertApiToResumeData } from "@/lib/resume-converter";
 
 export default function ResumeCenter() {
   const [resumes, setResumes] = useState<Resume[]>([]);

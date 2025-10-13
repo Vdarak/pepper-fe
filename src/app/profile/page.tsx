@@ -11,7 +11,7 @@ import ThemeToggle from "@/components/theme-toggle";
 import { useState } from "react";
 
 export default function ProfilePage() {
-  const { isAuthorized, isChecking } = useAuthProtection();
+  const { isChecking } = useAuthProtection();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   const handleLogout = async () => {

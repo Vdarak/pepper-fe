@@ -13,6 +13,7 @@ import {
   downloadResume,
   uploadResume,
   reUploadResume,
+  analyzeResume,
   ApiError,
   type Resume,
 } from "@/lib/api";
@@ -28,6 +29,9 @@ export default function ResumeCenter() {
   const [uploadName, setUploadName] = useState("");
   const [reUploadingId, setReUploadingId] = useState<string | null>(null);
   const reUploadFileInputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
+  // Score state: map of resumeId -> score (number) or null (no score / error)
+  const [resumeScores, setResumeScores] = useState<Record<string, number | null>>({});
+  const [loadingScores, setLoadingScores] = useState<Record<string, boolean>>({});
 
   // Fetch resumes from API
   const fetchResumes = async () => {
@@ -36,6 +40,20 @@ export default function ResumeCenter() {
       const response = await listResumes(15);
       setResumes(response.resumes);
       console.log("Fetched resumes:", response.resumes);
+
+      // For resumes that are marked as Analyzed, fetch their score
+      response.resumes.forEach((r) => {
+        if (r.Analyzed) {
+          // don't refetch if we already have a score or are loading
+          setResumeScores((prev) => {
+            if (prev[r.IDResume] !== undefined) return prev;
+            return prev;
+          });
+
+          // Trigger fetch independently (don't await here)
+          fetchResumeScore(r.IDResume);
+        }
+      });
     } catch (error) {
       if (error instanceof ApiError) {
         alert(`Failed to fetch resumes: ${error.message}`);
@@ -45,6 +63,31 @@ export default function ResumeCenter() {
       console.error("Fetch resumes error:", error);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  // Fetch score for a specific resume (background)
+  const fetchResumeScore = async (resumeId: string) => {
+    // Avoid duplicate fetches
+    setLoadingScores((prev) => {
+      if (prev[resumeId]) return prev;
+      return { ...prev, [resumeId]: true };
+    });
+
+    try {
+      const response = await analyzeResume(resumeId);
+      const score = typeof response.resume_score === 'number' ? response.resume_score : null;
+      setResumeScores((prev) => ({ ...prev, [resumeId]: score }));
+    } catch (error) {
+      if (error instanceof ApiError) {
+        console.error(`Analyze failed for ${resumeId}:`, error.message);
+      } else {
+        console.error(`Analyze failed for ${resumeId}:`, error);
+      }
+      // On error we set null so UI shows default '-'
+      setResumeScores((prev) => ({ ...prev, [resumeId]: null }));
+    } finally {
+      setLoadingScores((prev) => ({ ...prev, [resumeId]: false }));
     }
   };
 
@@ -378,6 +421,35 @@ export default function ResumeCenter() {
                               }`}
                             >
                               {resume.IsOriginal ? "✓ Original" : "Modified"}
+                            </span>
+                            {/* Resume score badge */}
+                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium">
+                              <span className="font-medium mr-2">Score:</span>
+                              {(() => {
+                                const score = resumeScores[resume.IDResume];
+                                const loading = loadingScores[resume.IDResume];
+                                let display = "-";
+                                let classes = "inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-400";
+
+                                if (loading) {
+                                  display = "...";
+                                } else if (typeof score === 'number') {
+                                  display = `${Math.round(score)}`;
+                                  if (score > 80) {
+                                    classes = "inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400";
+                                  } else if (score >= 60) {
+                                    classes = "inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400";
+                                  } else {
+                                    classes = "inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400";
+                                  }
+                                }
+
+                                return (
+                                  <span className={classes} title={loading ? "Loading score..." : (typeof score === 'number' ? `Score: ${score}` : 'Not available')}>
+                                    {display}
+                                  </span>
+                                );
+                              })()}
                             </span>
                             <span
                               className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${

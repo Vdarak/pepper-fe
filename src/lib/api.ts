@@ -571,6 +571,28 @@ export async function downloadResume(resumeId: string): Promise<Blob> {
 }
 
 /**
+ * Analyze a resume to get resume analysis data and score
+ */
+export interface AnalyzeResponse {
+  resume_analysis_data: Record<string, unknown>;
+  resume_score: number;
+}
+
+export async function analyzeResume(resumeId: string): Promise<AnalyzeResponse> {
+  if (!resumeId || !resumeId.trim()) {
+    throw new ApiError(400, 'Resume ID is required');
+  }
+
+  console.log('🔍 API Request (Analyze):', { url: `${getApiUrl()}/resume/analyze`, method: 'POST', resume_id: resumeId });
+
+  return apiRequest<AnalyzeResponse>('/resume/analyze', {
+    method: 'POST',
+    body: JSON.stringify({ IDResume: resumeId.trim() }),
+    credentials: 'include',
+  });
+}
+
+/**
  * Fetch resume info for editor
  */
 export async function fetchResumeInfo(resumeId: string): Promise<ResumeInfoResponse> {
